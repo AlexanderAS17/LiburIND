@@ -28,6 +28,11 @@ public class ItineraryController {
 	
 	@Autowired
 	ItineraryUserDao itineraryUserDao;
+
+	@GetMapping("/welcome")
+	public String welcome() {
+		return "Haloo-haloo";
+	}
 	
 	@RequestMapping(value = {"/save"}, method = RequestMethod.POST)
 	public ResponseEntity<?> saveItinerary(@RequestParam String name, @RequestParam boolean publicFlag, @RequestParam String userId) {
