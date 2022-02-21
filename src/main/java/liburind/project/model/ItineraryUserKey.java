@@ -1,0 +1,48 @@
+package liburind.project.model;
+
+import java.io.Serializable;
+
+import javax.persistence.Embeddable;
+
+@Embeddable
+public class ItineraryUserKey implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private String itineraryId;
+	private String userId;
+
+	public String getItineraryId() {
+		return itineraryId;
+	}
+
+	public void setItineraryId(String itineraryId) {
+		this.itineraryId = itineraryId;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	public ItineraryUserKey() {
+		super();
+	}
+
+	public ItineraryUserKey(String itineraryId, String userId) {
+		super();
+		this.itineraryId = itineraryId;
+		this.userId = userId;
+	}
+
+}
