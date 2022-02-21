@@ -37,7 +37,7 @@ public class ItineraryController {
 	}
 	
 	@RequestMapping(value = {"/save"}, method = RequestMethod.POST)
-	public ResponseEntity<?> saveItinerary(@RequestBody String name, @RequestBody boolean publicFlag, @RequestBody String userId) {
+	public ResponseEntity<Itinerary> saveItinerary(@RequestBody String name, @RequestBody boolean publicFlag, @RequestBody String userId) throws Exception {
 		try {
 			Itinerary itinerary = new Itinerary();
 			itinerary.setItineraryId(""); //Next Sequence From DB
@@ -59,7 +59,7 @@ public class ItineraryController {
 			
 			return ResponseEntity.ok(itinerary);
 		} catch (Exception e) {
-			return ResponseEntity.badRequest().body("Error");
+			return ResponseEntity.badRequest().body(new Itinerary());
 		}
 	}
 	
