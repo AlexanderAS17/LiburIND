@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,7 +37,7 @@ public class ItineraryController {
 	}
 	
 	@RequestMapping(value = {"/save"}, method = RequestMethod.POST)
-	public ResponseEntity<?> saveItinerary(@RequestParam String name, @RequestParam boolean publicFlag, @RequestParam String userId) {
+	public ResponseEntity<?> saveItinerary(@RequestBody String name, @RequestBody boolean publicFlag, @RequestBody String userId) {
 		try {
 			Itinerary itinerary = new Itinerary();
 			itinerary.setItineraryId(""); //Next Sequence From DB
