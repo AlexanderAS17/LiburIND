@@ -53,8 +53,8 @@ public class ItineraryController {
 			
 //			System.out.println(itinerary.toString());
 			
-			itineraryDao.save(itinerary);
-			itineraryUserDao.save(itineraryUser);
+//			itineraryDao.save(itinerary);
+//			itineraryUserDao.save(itineraryUser);
 			
 			return ResponseEntity.ok(itinerary);
 		} catch (Exception e) {
