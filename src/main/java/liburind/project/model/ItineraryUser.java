@@ -17,5 +17,16 @@ public class ItineraryUser {
 	
 	@EmbeddedId
 	private ItineraryUserKey iteneraryUserKey;
+
+	public ItineraryUser(ItineraryUserKey iteneraryUserKey) {
+		super();
+		this.iteneraryUserKey = iteneraryUserKey;
+	}
+
+	public ItineraryUser() {
+		super();
+	}
+	
+	
 	
 }
