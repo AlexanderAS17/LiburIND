@@ -1,18 +1,12 @@
 package liburind.project.model;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
-@Entity
-@Table(name = "User")
-@JsonInclude(Include.NON_NULL)
 @Data
+@Document(collection = "User")
 public class User {
 	
 	@Id
@@ -21,5 +15,19 @@ public class User {
 	private String userEmail;
 	private String userPassword;
 	private String roleId;
+	
+	public User(String userId, String userName, String userEmail, String userPassword, String roleId) {
+		super();
+		this.userId = userId;
+		this.userName = userName;
+		this.userEmail = userEmail;
+		this.userPassword = userPassword;
+		this.roleId = roleId;
+	}
 
+	public User() {
+		super();
+	}
+	
+	
 }
