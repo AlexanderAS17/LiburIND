@@ -2,6 +2,8 @@ package liburind.project.model;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class ItineraryUserKey implements Serializable {
 
 	/**
@@ -9,6 +11,7 @@ public class ItineraryUserKey implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	@JsonIgnore
 	private String itineraryId;
 	private String userId;
 
