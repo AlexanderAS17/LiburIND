@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.repository.Query;
 import liburind.project.model.Riview;
 import liburind.project.model.User;
 
-public interface RiviewDao extends MongoRepository<Riview, String> {
+public interface RiviewRepository extends MongoRepository<Riview, String> {
 	
 	@Query("{tableId:'?0'}")
 	List<User> findByTableId(String tableId);
