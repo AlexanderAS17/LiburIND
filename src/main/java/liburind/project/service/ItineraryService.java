@@ -1,6 +1,8 @@
 package liburind.project.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +37,40 @@ public class ItineraryService {
 
 	@Autowired
 	UserRepository userDao;
+	
+	public Itinerary update(String id, String name, boolean publicFlag, String startDate, String detail) {
+		Optional<Itinerary> itrOpt = itineraryDao.findById(id);
+		if(itrOpt.isPresent()) {
+			LocalDate localDate = LocalDate.now();
+			try {
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+		        localDate = LocalDate.parse(startDate, formatter);
+			} catch (Exception e) {
+				localDate = LocalDate.now();
+			}
+			
+			Itinerary itinerary = itrOpt.get();
+			itinerary.setItineraryName(name);
+			itinerary.setPublicFlag(publicFlag);
+			itinerary.setDetail(detail);
+	        itinerary.setStartDate(localDate);
+	        
+	        itineraryDao.save(itinerary);
+	        return itinerary;
+		} else {
+			return null;
+		}
+	}
 
-	public Itinerary save(String name, boolean publicFlag, String userId) {
+	public Itinerary save(String name, boolean publicFlag, String userId, String startDate, String detail) {
+		LocalDate localDate = LocalDate.now();
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+	        localDate = LocalDate.parse(startDate, formatter);
+		} catch (Exception e) {
+			localDate = LocalDate.now();
+		}
+		
 		Itinerary itinerary = new Itinerary();
 		Optional<TableCount> countOpt = tableCountDao.findById("Itinerary");
 		int count = countOpt.isPresent() ? countOpt.get().getCount() : 0;
@@ -45,8 +79,14 @@ public class ItineraryService {
 		itinerary.setItineraryName(name);
 		itinerary.setItineraryRiviewCount(0);
 		itinerary.setPublicFlag(publicFlag);
-		itinerary.setSeqId("SEQ001"); // Create
+		Optional<TableCount> seqOpt = tableCountDao.findById("DestinationSeq");
+		int seq = seqOpt.isPresent() ? seqOpt.get().getCount() : 0;
+		String seqId = String.format("SEQ%03d", seq + 1);
+		itinerary.setSeqId(seqId); // Create
 		itinerary.setItineraryUserId(userId);
+		itinerary.setDetail(detail);
+        itinerary.setStartDate(localDate);
+		
 		itinerary.setItineraryRecordedTime(LocalDateTime.now());
 
 		ItineraryUser itineraryUser = new ItineraryUser();
@@ -187,5 +227,7 @@ public class ItineraryService {
 			}
 		}
 	}
+
+	
 
 }

@@ -1,5 +1,6 @@
 package liburind.project.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -20,6 +21,8 @@ public class Itinerary {
 	private boolean publicFlag;
 	private String seqId;
 	private String itineraryUserId;
+	private LocalDate startDate;
+	private String detail;
 	private LocalDateTime itineraryRecordedTime;
 	
 	@Transient
