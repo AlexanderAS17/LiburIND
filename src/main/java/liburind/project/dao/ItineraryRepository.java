@@ -11,5 +11,8 @@ public interface ItineraryRepository extends MongoRepository<Itinerary, String> 
 	
 	@Query("{itineraryUserId:'?0'}")
 	List<Itinerary> findByUser(String itineraryUserId);
+	
+	@Query("{publicFlag: ?0}")
+	List<Itinerary> findByFlag(Boolean publicFlag);
 
 }

@@ -140,6 +140,16 @@ public class ItineraryController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
 		}
 	}
+	
+	@RequestMapping(value = { "/public" }, method = RequestMethod.POST)
+	public ResponseEntity<?> getListPublic(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+		ArrayList<Itinerary> arrItr = itineraryServ.getItrListPublic();
+		if (arrItr != null) {
+			return ResponseEntity.ok(arrItr);
+		} else {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+		}
+	}
 
 	@RequestMapping(value = { "/delete" }, method = RequestMethod.POST)
 	public ResponseEntity<?> delete(@RequestBody String json) throws JsonMappingException, JsonProcessingException {

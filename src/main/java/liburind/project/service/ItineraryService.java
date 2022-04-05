@@ -201,6 +201,15 @@ public class ItineraryService {
 		}
 		return new ArrayList<Itinerary>(arrItr);
 	}
+	
+	public ArrayList<Itinerary> getItrListPublic() {
+		List<Itinerary> arrItr = itineraryDao.findByFlag(true);
+		
+		if (arrItr.size() == 0) {
+			return null;
+		}
+		return new ArrayList<Itinerary>(arrItr);
+	}
 
 	public Itinerary get(String itineraryId) {
 		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
