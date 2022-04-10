@@ -1,5 +1,6 @@
 package liburind.project.model;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 
 import org.springframework.data.annotation.Id;
@@ -17,12 +18,9 @@ public class Destination {
 	private String destinationId;
 	private String destinationName;
 	private String destinationCity;
-	private String destinationScore;
+	private BigDecimal destinationScore;
 	
 	@Transient
-	private ArrayList<Riview> riview;
-	
-	@Transient
-	private ArrayList<DestinationCategory> category;
+	private ArrayList<Category> category;
 
 }

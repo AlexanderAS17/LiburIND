@@ -1,6 +1,8 @@
 package liburind.project.model;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class DestinationSeqKey implements Serializable {
 
@@ -10,16 +12,9 @@ public class DestinationSeqKey implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String seqId;
-	private String seqDay;
+	private LocalDate seqDate;
+	private LocalDateTime seqStartTime;
 	private String destinationId;
-
-	public String getSeqDay() {
-		return seqDay;
-	}
-
-	public void setSeqDay(String seqDay) {
-		this.seqDay = seqDay;
-	}
 
 	public String getSeqId() {
 		return seqId;
@@ -27,6 +22,22 @@ public class DestinationSeqKey implements Serializable {
 
 	public void setSeqId(String seqId) {
 		this.seqId = seqId;
+	}
+
+	public LocalDate getSeqDate() {
+		return seqDate;
+	}
+
+	public void setSeqDate(LocalDate seqDate) {
+		this.seqDate = seqDate;
+	}
+
+	public LocalDateTime getSeqStartTime() {
+		return seqStartTime;
+	}
+
+	public void setSeqStartTime(LocalDateTime seqStartTime) {
+		this.seqStartTime = seqStartTime;
 	}
 
 	public String getDestinationId() {
@@ -37,18 +48,16 @@ public class DestinationSeqKey implements Serializable {
 		this.destinationId = destinationId;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
+	public DestinationSeqKey(String seqId, LocalDate seqDate, LocalDateTime seqStartTime, String destinationId) {
+		super();
+		this.seqId = seqId;
+		this.seqDate = seqDate;
+		this.seqStartTime = seqStartTime;
+		this.destinationId = destinationId;
 	}
 
 	public DestinationSeqKey() {
 		super();
-	}
-
-	public DestinationSeqKey(String seqId, String destinationId) {
-		super();
-		this.seqId = seqId;
-		this.destinationId = destinationId;
 	}
 
 }

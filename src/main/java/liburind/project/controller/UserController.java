@@ -58,15 +58,15 @@ public class UserController {
 
 			if (userOpt.isPresent()) {
 				if (!userServ.hashPassword(password).equals(userOpt.get().getUserPassword())) {
-					return ResponseEntity.badRequest().body("Wrong Password");
+					return ResponseEntity.badRequest().body(new User());
 				}
 			} else {
-				return ResponseEntity.status(404).body("Not Found");
+				return ResponseEntity.badRequest().body(new User());
 			}
 
 			return ResponseEntity.ok(userOpt.get());
 		} catch (Exception e) {
-			return ResponseEntity.badRequest().body("Error");
+			return ResponseEntity.internalServerError().body(new User());
 		}
 	}
 

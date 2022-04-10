@@ -51,7 +51,7 @@ public class ItineraryController {
 			return ResponseEntity.ok().body(itineraryServ.save(name, publicFlag, userId, startDate, detail));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("error");
+			return ResponseEntity.internalServerError().body(new Itinerary());
 		}
 	}
 
@@ -72,12 +72,12 @@ public class ItineraryController {
 			Itinerary data = itineraryServ.update(id, name, publicFlag, startDate, detail);
 			
 			if(data == null) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Data Not Found");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Itinerary());
 			}
 			return ResponseEntity.ok().body(data);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("error");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Itinerary());
 		}
 	}
 
@@ -122,7 +122,7 @@ public class ItineraryController {
 		if (itinerary != null) {
 			return ResponseEntity.ok(itinerary);
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Itinerary());
 		}
 	}
 
@@ -137,7 +137,7 @@ public class ItineraryController {
 		if (arrItr != null) {
 			return ResponseEntity.ok(arrItr);
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<Itinerary>());
 		}
 	}
 	
@@ -147,7 +147,7 @@ public class ItineraryController {
 		if (arrItr != null) {
 			return ResponseEntity.ok(arrItr);
 		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<Itinerary>());
 		}
 	}
 
