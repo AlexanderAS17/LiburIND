@@ -2,6 +2,7 @@ package liburind.project.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -131,6 +132,56 @@ public class DestinationService {
 			destDao.save(destination);
 		}
 		return destination;
+	}
+
+	public Object updateCategory(JsonNode jsonNode) {
+		if(jsonNode.has("destinationId")) {
+			Optional<Destination> destOpt = destDao.findById(jsonNode.get("destinationId").asText());
+			if(destOpt.isPresent()) {
+				Destination destination = this.getCategory(destOpt.get());
+				HashMap<String, Category> mapCtg = new HashMap<String, Category>();
+				List<DestinationCategory> listData = destCtgDao.findByDestination(destination.getDestinationId());
+				
+				for (int i = 1; i < jsonNode.size(); i++) {
+					String catgKey = jsonNode.get("category" + i).asText();
+					Optional<Category> ctgOpt = ctgDao.findById(catgKey);
+					if(ctgOpt.isPresent()) {
+						mapCtg.put(catgKey, ctgOpt.get());
+					}
+				}
+				
+				ArrayList<Category> arrCtg = new ArrayList<Category>(mapCtg.values());
+				destination.setCategory(arrCtg);
+				
+				for (DestinationCategory data : listData) {
+					if(!mapCtg.containsKey(data.getCategoryId())) {
+						destCtgDao.delete(data);
+					} else {
+						mapCtg.remove(data.getCategoryId());
+					}
+				}
+				
+				arrCtg = new ArrayList<Category>(mapCtg.values());
+				for (Category category : arrCtg) {
+					DestinationCategory desCatg = new DestinationCategory();
+					Optional<TableCount> tblCount = tblDao.findById("DestinationCategory");
+					String id = "";
+					if(tblCount.isPresent()) {
+						id = String.format("DCT%d", tblCount.get().getCount() + 1);
+						tblDao.save(new TableCount("DestinationCategory", tblCount.get().getCount() + 1));
+					} else {
+						id = String.format("DCT1", 1);
+						tblDao.save(new TableCount("DestinationCategory", 1));
+					}
+					desCatg.setDestinationCategoryId(id);
+					desCatg.setCategoryId(category.getCategoryId());
+					desCatg.setDestinationId(destination.getDestinationId());
+					destCtgDao.save(desCatg);
+				}
+				return destination;
+			}
+		} 
+		return ResponseEntity.badRequest().body("Check Param");
 	}
 
 }
