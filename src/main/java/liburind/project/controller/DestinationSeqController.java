@@ -41,4 +41,59 @@ public class DestinationSeqController {
 		}
 	}
 
+	@RequestMapping(value = {
+			"/save" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> save(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(destSeqServ.save(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+		}
+	}
+
+	@RequestMapping(value = {
+			"/delete" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> delete(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+			
+			String date = jsonNode.get("date").asText();
+			String itineraryId = jsonNode.get("itineraryId").asText();
+
+			return ResponseEntity.ok().body(destSeqServ.delete(itineraryId, date));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+		}
+	}
+
+//	{
+//	    "data" : [
+//	        {
+//	           "destinationId" : "DES001",
+//	            "startTime" : "20220416170000",
+//	            "endTime" : "20220416180000"
+//	        },
+//	        {
+//	            "destinationId" : "DES002",
+//	            "startTime" : "20220416180000",
+//	            "endTime" : "20220416200000"
+//	        },
+//	        {
+//	           "destinationId" : "DES001",
+//	            "startTime" : "20220416200000",
+//	            "endTime" : "20220416210000"
+//	        }
+//	    ],
+//	    "itineraryId" : "ITR001",
+//	    "price" : "500.000",
+//	    "date" : "20220416"
+//	}
 }

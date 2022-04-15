@@ -2,7 +2,6 @@ package liburind.project.model;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class DestinationSeqKey implements Serializable {
 
@@ -13,8 +12,16 @@ public class DestinationSeqKey implements Serializable {
 
 	private String seqId;
 	private LocalDate seqDate;
-	private LocalDateTime seqStartTime;
-	private String destinationId;
+
+	public DestinationSeqKey(String seqId, LocalDate seqDate) {
+		super();
+		this.seqId = seqId;
+		this.seqDate = seqDate;
+	}
+
+	public DestinationSeqKey() {
+		super();
+	}
 
 	public String getSeqId() {
 		return seqId;
@@ -30,34 +37,6 @@ public class DestinationSeqKey implements Serializable {
 
 	public void setSeqDate(LocalDate seqDate) {
 		this.seqDate = seqDate;
-	}
-
-	public LocalDateTime getSeqStartTime() {
-		return seqStartTime;
-	}
-
-	public void setSeqStartTime(LocalDateTime seqStartTime) {
-		this.seqStartTime = seqStartTime;
-	}
-
-	public String getDestinationId() {
-		return destinationId;
-	}
-
-	public void setDestinationId(String destinationId) {
-		this.destinationId = destinationId;
-	}
-
-	public DestinationSeqKey(String seqId, LocalDate seqDate, LocalDateTime seqStartTime, String destinationId) {
-		super();
-		this.seqId = seqId;
-		this.seqDate = seqDate;
-		this.seqStartTime = seqStartTime;
-		this.destinationId = destinationId;
-	}
-
-	public DestinationSeqKey() {
-		super();
 	}
 
 }

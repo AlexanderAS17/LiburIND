@@ -98,6 +98,7 @@ public class DestinationService {
 		String name = jsonNode.get("destinationName").asText();
 		String city = jsonNode.get("destinationCity").asText();
 		String score = jsonNode.get("destinationScore").asText();
+		String detail = jsonNode.get("destinationDetail").asText();
 		
 		if(jsonNode.has("destinationId")) {
 			String id = jsonNode.get("destinationId").asText();
@@ -107,6 +108,7 @@ public class DestinationService {
 				destination.setDestinationCity(city);
 				destination.setDestinationName(name);
 				destination.setDestinationScore(new BigDecimal(score));
+				destination.setDestinationDetail(detail);
 				
 				destDao.save(destination);
 			} else {
@@ -128,6 +130,7 @@ public class DestinationService {
 			destination.setDestinationName(name);
 			destination.setDestinationCity(city);
 			destination.setDestinationScore(new BigDecimal(score));
+			destination.setDestinationDetail(detail);
 			
 			destDao.save(destination);
 		}

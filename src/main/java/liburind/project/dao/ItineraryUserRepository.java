@@ -10,7 +10,7 @@ import liburind.project.model.ItineraryUserKey;
 
 public interface ItineraryUserRepository extends MongoRepository<ItineraryUser, ItineraryUserKey> {
 	
-	@Query("{itineraryId:'?0'}")
+	@Query("{_id : {itineraryId:'?0'}}")
 	List<ItineraryUser> findByItineraryId(String itineraryId);
 
-}	
+}

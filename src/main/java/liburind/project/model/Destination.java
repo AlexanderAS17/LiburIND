@@ -19,6 +19,7 @@ public class Destination {
 	private String destinationName;
 	private String destinationCity;
 	private BigDecimal destinationScore;
+	private String destinationDetail;
 	
 	@Transient
 	private ArrayList<Category> category;

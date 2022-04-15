@@ -1,5 +1,6 @@
 package liburind.project.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class Itinerary {
 	@Transient
 	ArrayList<ItineraryUser> user;
 	
-//	@Transient
-//	ArrayList<Riview> riview;
+	@Transient
+	private BigDecimal rating;
 
 }

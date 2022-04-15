@@ -2,8 +2,6 @@ package liburind.project.model;
 
 import java.io.Serializable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 public class ItineraryUserKey implements Serializable {
 
 	/**

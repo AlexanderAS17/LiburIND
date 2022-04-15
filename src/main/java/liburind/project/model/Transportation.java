@@ -14,5 +14,6 @@ public class Transportation {
 	private String transportationName;
 	private String transportationPhone;
 	private String transCategoryId;
+	private Boolean flagUsed;
 
 }
