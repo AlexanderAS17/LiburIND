@@ -183,15 +183,23 @@ public class ItineraryService {
 	}
 
 	public ArrayList<Itinerary> getItrList(String userId) {
+		HashMap<Itinerary, Integer> map = new HashMap<Itinerary, Integer>(); 
 		List<Itinerary> arrItr = itineraryDao.findByUser(userId);
 		List<ItineraryUser> list = itineraryUserDao.findAll();
+		Integer count = 1;
+		
+		for (Itinerary itinerary : arrItr) {
+			map.put(itinerary, count++);
+		}
 
 		for (ItineraryUser itineraryUser : list) {
 			if (userId.equals(itineraryUser.getIteneraryUserKey().getUserId())) {
 				Optional<Itinerary> itrOpt = itineraryDao
 						.findById(itineraryUser.getIteneraryUserKey().getItineraryId());
 				if (itrOpt.isPresent()) {
-					arrItr.add(itrOpt.get());
+					if(!map.containsKey(itrOpt.get())) {
+						arrItr.add(itrOpt.get());
+					}
 				}
 			}
 		}
