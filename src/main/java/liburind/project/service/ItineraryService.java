@@ -1,8 +1,10 @@
 package liburind.project.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,10 +15,14 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import liburind.project.dao.DestinationSeqRepository;
 import liburind.project.dao.ItineraryRepository;
 import liburind.project.dao.ItineraryUserRepository;
 import liburind.project.dao.TableCountRepository;
 import liburind.project.dao.UserRepository;
+import liburind.project.helper.DataHelper;
+import liburind.project.model.DestinationSeq;
+import liburind.project.model.DestinationSeqKey;
 import liburind.project.model.Itinerary;
 import liburind.project.model.ItineraryUser;
 import liburind.project.model.ItineraryUserKey;
@@ -37,40 +43,62 @@ public class ItineraryService {
 
 	@Autowired
 	UserRepository userDao;
-	
-	public Itinerary update(String id, String name, boolean publicFlag, String startDate, String detail) {
+
+	@Autowired
+	DestinationSeqRepository desSeqDao;
+
+	public Itinerary update(String id, String name, boolean publicFlag, String startDate, String endDate,
+			String detail) {
 		Optional<Itinerary> itrOpt = itineraryDao.findById(id);
-		if(itrOpt.isPresent()) {
+		if (itrOpt.isPresent()) {
 			LocalDate localDate = LocalDate.now();
 			try {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-		        localDate = LocalDate.parse(startDate, formatter);
+				localDate = LocalDate.parse(startDate, formatter);
 			} catch (Exception e) {
 				localDate = LocalDate.now();
 			}
-			
+
 			Itinerary itinerary = itrOpt.get();
 			itinerary.setItineraryName(name);
 			itinerary.setPublicFlag(publicFlag);
 			itinerary.setDetail(detail);
-	        itinerary.setStartDate(localDate);
-	        
-	        itineraryDao.save(itinerary);
-	        return itinerary;
+			itinerary.setStartDate(localDate);
+			itineraryDao.save(itinerary);
+
+			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+			LocalDate date = itinerary.getStartDate();
+			for (DestinationSeq destinationSeq : listSeq) {
+				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqKey().getSeqDate();
+				}
+			}
+			itinerary.setEndDate(date);
+
+			return itinerary;
 		} else {
 			return null;
 		}
 	}
 
-	public Itinerary save(String name, boolean publicFlag, String userId, String startDate, String detail) {
-		LocalDate localDate = LocalDate.now();
+	public Itinerary save(String name, boolean publicFlag, String userId, String startDate, String endDate,
+			String detail) {
+		LocalDate localDateStart = LocalDate.now();
 		try {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-	        localDate = LocalDate.parse(startDate, formatter);
+			localDateStart = LocalDate.parse(startDate, formatter);
 		} catch (Exception e) {
-			localDate = LocalDate.now();
+			localDateStart = LocalDate.now();
 		}
-		
+
+		LocalDate localDateEnd = LocalDate.now();
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+			localDateEnd = LocalDate.parse(endDate, formatter);
+		} catch (Exception e) {
+			localDateEnd = LocalDate.now();
+		}
+
 		Itinerary itinerary = new Itinerary();
 		Optional<TableCount> countOpt = tableCountDao.findById("Itinerary");
 		int count = countOpt.isPresent() ? countOpt.get().getCount() : 0;
@@ -79,29 +107,36 @@ public class ItineraryService {
 		itinerary.setItineraryName(name);
 		itinerary.setItineraryRiviewCount(0);
 		itinerary.setPublicFlag(publicFlag);
-		Optional<TableCount> seqOpt = tableCountDao.findById("DestinationSeq");
-		int seq = seqOpt.isPresent() ? seqOpt.get().getCount() : 0;
-		String seqId = String.format("SEQ%03d", seq + 1);
-		itinerary.setSeqId(seqId); // Create
 		itinerary.setItineraryUserId(userId);
 		itinerary.setDetail(detail);
-        itinerary.setStartDate(localDate);
-		
+		itinerary.setStartDate(localDateStart);
+		itinerary.setEndDate(localDateEnd);
+
 		itinerary.setItineraryRecordedTime(LocalDateTime.now());
 
 		ItineraryUser itineraryUser = new ItineraryUser();
 		ItineraryUserKey key = new ItineraryUserKey(itinerary.getItineraryId(), itinerary.getItineraryUserId());
 		itineraryUser.setIteneraryUserKey(key);
 
-		ArrayList<ItineraryUser> user = new ArrayList<ItineraryUser>();
-		user.add(new ItineraryUser(new ItineraryUserKey(itinerary.getItineraryId(), itinerary.getItineraryUserId())));
-		itinerary.setUser(user);
-
 		itineraryDao.save(itinerary);
-		for (ItineraryUser itineraryUserData : user) {
-			itineraryUserDao.save(itineraryUserData);
-		}
+		itineraryUserDao.save(itineraryUser);
 
+		long days = localDateStart.until(localDateEnd, ChronoUnit.DAYS);
+		for (int i = 0; i <= days; i++) {
+			DestinationSeq destinationSeq = new DestinationSeq();
+			String desSeqId = itinerary.getItineraryId() + " - "
+					+ DataHelper.dateToString(itinerary.getStartDate().plusDays(i)) + " - 1";
+			DestinationSeqKey seqKey = new DestinationSeqKey(desSeqId, itinerary.getStartDate().plusDays(i));
+
+			destinationSeq.setSeqKey(seqKey);
+			destinationSeq.setItineraryId(itinerary.getItineraryId());
+			destinationSeq.setSeqStartTime(itinerary.getStartDate().plusDays(i).atStartOfDay());
+			destinationSeq.setSeqPrice(BigDecimal.ZERO);
+			destinationSeq.setDestinationId("");
+			destinationSeq.setDestinationName("");
+
+			desSeqDao.save(destinationSeq);
+		}
 		return itinerary;
 	}
 
@@ -183,13 +218,21 @@ public class ItineraryService {
 	}
 
 	public ArrayList<Itinerary> getItrList(String userId) {
-		HashMap<Itinerary, Integer> map = new HashMap<Itinerary, Integer>(); 
+		HashMap<String, Integer> map = new HashMap<String, Integer>();
 		List<Itinerary> arrItr = itineraryDao.findByUser(userId);
 		List<ItineraryUser> list = itineraryUserDao.findAll();
 		Integer count = 1;
-		
+
 		for (Itinerary itinerary : arrItr) {
-			map.put(itinerary, count++);
+			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+			LocalDate date = itinerary.getStartDate();
+			for (DestinationSeq destinationSeq : listSeq) {
+				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqKey().getSeqDate();
+				}
+			}
+			itinerary.setEndDate(date);
+			map.put(itinerary.getItineraryId(), count++);
 		}
 
 		for (ItineraryUser itineraryUser : list) {
@@ -197,8 +240,17 @@ public class ItineraryService {
 				Optional<Itinerary> itrOpt = itineraryDao
 						.findById(itineraryUser.getIteneraryUserKey().getItineraryId());
 				if (itrOpt.isPresent()) {
-					if(!map.containsKey(itrOpt.get())) {
-						arrItr.add(itrOpt.get());
+					if (!map.containsKey(itrOpt.get().getItineraryId())) {
+						List<DestinationSeq> listSeq = desSeqDao.findByItrId(itrOpt.get().getItineraryId());
+						LocalDate date = itrOpt.get().getStartDate();
+						for (DestinationSeq destinationSeq : listSeq) {
+							if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
+								date = destinationSeq.getSeqKey().getSeqDate();
+							}
+						}
+						Itinerary itinerary = itrOpt.get();
+						itinerary.setEndDate(date);
+						arrItr.add(itinerary);
 					}
 				}
 			}
@@ -209,20 +261,43 @@ public class ItineraryService {
 		}
 		return new ArrayList<Itinerary>(arrItr);
 	}
-	
+
 	public ArrayList<Itinerary> getItrListPublic() {
 		List<Itinerary> arrItr = itineraryDao.findByFlag(true);
-		
+		ArrayList<Itinerary> listItr = new ArrayList<Itinerary>();
 		if (arrItr.size() == 0) {
 			return null;
 		}
-		return new ArrayList<Itinerary>(arrItr);
+
+		for (Itinerary itinerary : arrItr) {
+			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+			LocalDate date = itinerary.getStartDate();
+			for (DestinationSeq destinationSeq : listSeq) {
+				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqKey().getSeqDate();
+				}
+			}
+			itinerary.setEndDate(date);
+			listItr.add(itinerary);
+		}
+
+		return listItr;
 	}
 
 	public Itinerary get(String itineraryId) {
 		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
+		List<DestinationSeq> listSeq = desSeqDao.findByItrId(itineraryId);
+
 		if (itrOpt.isPresent()) {
-			return itrOpt.get();
+			LocalDate date = itrOpt.get().getStartDate();
+			for (DestinationSeq destinationSeq : listSeq) {
+				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqKey().getSeqDate();
+				}
+			}
+			Itinerary itr = itrOpt.get();
+			itr.setEndDate(date);
+			return itr;
 		}
 		return null;
 	}
@@ -244,7 +319,5 @@ public class ItineraryService {
 			}
 		}
 	}
-
-	
 
 }

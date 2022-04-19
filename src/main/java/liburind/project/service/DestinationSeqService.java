@@ -16,10 +16,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import liburind.project.dao.DestinationRepository;
 import liburind.project.dao.DestinationSeqRepository;
+import liburind.project.dao.ItineraryRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.Destination;
 import liburind.project.model.DestinationSeq;
 import liburind.project.model.DestinationSeqKey;
+import liburind.project.model.Itinerary;
 
 @Service
 public class DestinationSeqService {
@@ -29,6 +31,9 @@ public class DestinationSeqService {
 
 	@Autowired
 	DestinationRepository desDao;
+
+	@Autowired
+	ItineraryRepository itrDao;
 
 	private ArrayList<ArrayList<DestinationSeq>> splitData(List<DestinationSeq> listDestSeq) {
 		ArrayList<ArrayList<DestinationSeq>> splited = new ArrayList<ArrayList<DestinationSeq>>();
@@ -54,7 +59,7 @@ public class DestinationSeqService {
 			for (DestinationSeq destinationSeq : listDestSeq) {
 				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				String desName = "";
-				if(desOpt.isPresent()) {
+				if (desOpt.isPresent()) {
 					desName = desOpt.get().getDestinationName();
 				}
 				destinationSeq.setDestinationName(desName);
@@ -77,6 +82,9 @@ public class DestinationSeqService {
 		int count = 1;
 		this.delete(itineraryId, jsonNode.get("date").asText());
 
+		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
+		LocalDate startDateTime = null;
+
 		if (jsonNode.has("data") && jsonNode.get("data").isArray()) {
 			for (JsonNode objNode : jsonNode.get("data")) {
 				DestinationSeq destinationSeq = new DestinationSeq();
@@ -95,11 +103,21 @@ public class DestinationSeqService {
 					destinationSeq.setDestinationId(objNode.get("destinationId").asText());
 					destinationSeq.setDestinationName(desOpt.get().getDestinationName());
 				} else {
-					return ResponseEntity.badRequest().body("Check Param");
+					destinationSeq.setDestinationId("");
 				}
 
 				desSeqDao.save(destinationSeq);
 				arrDest.add(destinationSeq);
+
+				if (startDateTime == null || destinationSeq.getSeqKey().getSeqDate().isBefore(startDateTime)) {
+					startDateTime = destinationSeq.getSeqKey().getSeqDate();
+				}
+			}
+
+			if (itrOpt.isPresent()) {
+				Itinerary itr = itrOpt.get();
+				itr.setStartDate(startDateTime);
+				itrDao.save(itr);
 			}
 			ArrayList<ArrayList<DestinationSeq>> arrData = this.splitData(arrDest);
 			return arrData;
@@ -112,7 +130,7 @@ public class DestinationSeqService {
 		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
 		LocalDate deletedDate = DataHelper.toDate(date);
 		for (DestinationSeq destinationSeq : listData) {
-			if(destinationSeq.getSeqKey().getSeqDate().equals(deletedDate)) {
+			if (destinationSeq.getSeqKey().getSeqDate().equals(deletedDate)) {
 				desSeqDao.delete(destinationSeq);
 			}
 		}

@@ -40,6 +40,15 @@ public class DataHelper {
 		}
 	}
 	
+	public static String dateToString(LocalDate inp) {
+		try {
+			String str = inp.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+			return str;
+		} catch (Exception e) {
+			return " ";
+		}
+	}
+	
 	public static BigDecimal toBigDecimal(String str) {
 		try {
 			BigDecimal inp = new BigDecimal(str);

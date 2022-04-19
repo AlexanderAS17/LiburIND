@@ -46,9 +46,10 @@ public class ItineraryController {
 			boolean publicFlag = jsonNode.get("publicFlag").asBoolean();
 			String userId = jsonNode.get("userId").asText();
 			String startDate = jsonNode.get("startDate").asText();
-			String detail = jsonNode.get("detail").asText();
+			String endDate = jsonNode.get("endDate").asText();
+			String detail = jsonNode.has("detail") ? jsonNode.get("detail").asText() : "";
 
-			return ResponseEntity.ok().body(itineraryServ.save(name, publicFlag, userId, startDate, detail));
+			return ResponseEntity.ok().body(itineraryServ.save(name, publicFlag, userId, startDate, endDate, detail));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.internalServerError().body(new Itinerary());
@@ -67,9 +68,10 @@ public class ItineraryController {
 			String name = jsonNode.get("name").asText();
 			boolean publicFlag = jsonNode.get("publicFlag").asBoolean();
 			String startDate = jsonNode.get("startDate").asText();
-			String detail = jsonNode.get("detail").asText();
+			String endDate = jsonNode.get("endDate").asText();
+			String detail = jsonNode.has("detail") ? jsonNode.get("detail").asText() : "";
 			
-			Itinerary data = itineraryServ.update(id, name, publicFlag, startDate, detail);
+			Itinerary data = itineraryServ.update(id, name, publicFlag, startDate, endDate, detail);
 			
 			if(data == null) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Itinerary());
