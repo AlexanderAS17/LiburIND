@@ -22,6 +22,8 @@ import liburind.project.model.Destination;
 import liburind.project.model.DestinationSeq;
 import liburind.project.model.DestinationSeqKey;
 import liburind.project.model.Itinerary;
+import liburind.project.model.ItineraryDestination;
+import liburind.project.model.ItineraryResponse;
 
 @Service
 public class DestinationSeqService {
@@ -35,14 +37,14 @@ public class DestinationSeqService {
 	@Autowired
 	ItineraryRepository itrDao;
 
-	private ArrayList<ArrayList<DestinationSeq>> splitData(List<DestinationSeq> listDestSeq) {
+	private ArrayList<ItineraryResponse> splitData(List<DestinationSeq> listDestSeq) {
 		ArrayList<ArrayList<DestinationSeq>> splited = new ArrayList<ArrayList<DestinationSeq>>();
 		ArrayList<DestinationSeq> arrData = new ArrayList<DestinationSeq>();
+		ArrayList<ItineraryResponse> response = new ArrayList<ItineraryResponse>();
 		DestinationSeq prevData = new DestinationSeq();
 		for (DestinationSeq destinationSeq : listDestSeq) {
 			if (arrData.size() > 0
 					&& !prevData.getSeqKey().getSeqDate().isEqual(destinationSeq.getSeqKey().getSeqDate())) {
-				System.out.println(arrData.toString());
 				splited.add(arrData);
 				arrData = new ArrayList<DestinationSeq>();
 			}
@@ -50,7 +52,26 @@ public class DestinationSeqService {
 			prevData = destinationSeq;
 		}
 		splited.add(arrData);
-		return splited;
+		
+		for (ArrayList<DestinationSeq> perDays : splited) {
+			ItineraryResponse resDays = new ItineraryResponse();
+			resDays.setSeqDate(perDays.get(0).getSeqKey().getSeqDate());
+			resDays.setSeqPrice(perDays.get(0).getSeqPrice());
+			resDays.setItineraryId(perDays.get(0).getItineraryId());
+			List<ItineraryDestination> arrDestination = new ArrayList<ItineraryDestination>();
+			for (DestinationSeq destinationSeq : perDays) {
+				ItineraryDestination itrDes = new ItineraryDestination();
+				itrDes.setSeqId(destinationSeq.getSeqKey().getSeqId());
+				itrDes.setDestinationId(destinationSeq.getDestinationId());
+				itrDes.setDestinationName(destinationSeq.getDestinationName());
+				itrDes.setSeqStartTime(destinationSeq.getSeqStartTime());
+				itrDes.setSeqEndTime(destinationSeq.getSeqEndTime());
+				arrDestination.add(itrDes);
+			}
+			resDays.setArrDestination(arrDestination);
+			response.add(resDays);
+		}
+		return response;
 	}
 
 	public Object get(JsonNode jsonNode) {
@@ -67,10 +88,10 @@ public class DestinationSeqService {
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 				DestinationSeq.sortByDate(list);
-				return this.splitData(listDestSeq);
+				return this.splitData(list);
 			}
 		}
-		return ResponseEntity.badRequest().body("Chech Param");
+		return ResponseEntity.badRequest().body("Check Param");
 	}
 
 	@Transactional(rollbackOn = Exception.class)
@@ -119,7 +140,7 @@ public class DestinationSeqService {
 				itr.setStartDate(startDateTime);
 				itrDao.save(itr);
 			}
-			ArrayList<ArrayList<DestinationSeq>> arrData = this.splitData(arrDest);
+			ArrayList<ItineraryResponse> arrData = this.splitData(arrDest);
 			return arrData;
 		}
 		return ResponseEntity.badRequest().body("Check Param");

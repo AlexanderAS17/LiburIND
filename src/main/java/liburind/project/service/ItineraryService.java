@@ -102,6 +102,7 @@ public class ItineraryService {
 		Itinerary itinerary = new Itinerary();
 		Optional<TableCount> countOpt = tableCountDao.findById("Itinerary");
 		int count = countOpt.isPresent() ? countOpt.get().getCount() : 0;
+		tableCountDao.save(new TableCount("Itinerary", count + 1));
 		String id = String.format("ITR%03d", count + 1);
 		itinerary.setItineraryId(id);
 		itinerary.setItineraryName(name);
@@ -308,6 +309,11 @@ public class ItineraryService {
 			if (userId.equals(itrOpt.get().getItineraryUserId())) {
 				itineraryDao.delete(itrOpt.get());
 				ArrayList<User> arrUser = this.getUser(itineraryId);
+				List<DestinationSeq> listSeq = desSeqDao.findByItrId(itineraryId);
+				
+				for (DestinationSeq destinationSeq : listSeq) {
+					desSeqDao.delete(destinationSeq);
+				}
 
 				for (User user : arrUser) {
 					ItineraryUser itrUser = new ItineraryUser(new ItineraryUserKey(itineraryId, user.getUserId()));

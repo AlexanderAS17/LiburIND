@@ -13,7 +13,7 @@ public class Riview {
 	
 	@Id
 	private String riviewId;
-	private Integer riviewScore;
+	private float riviewScore;
 	private String riviewDetail;
 	private LocalDateTime riviewRecordedTime;
 	private String userId;

@@ -29,6 +29,7 @@ public class UserService {
 
 		Optional<TableCount> countOpt = tableCountDao.findById("User");
 		int count = countOpt.isPresent() ? countOpt.get().getCount() : 0;
+		tableCountDao.save(new TableCount("User", count + 1));
 		
 		String id = String.format("USR%03d", count + 1);
 		user.setUserId(id);

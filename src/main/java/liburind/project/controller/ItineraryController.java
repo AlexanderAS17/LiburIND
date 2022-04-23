@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import liburind.project.dao.TableCountRepository;
 import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 import liburind.project.service.ItineraryService;
@@ -30,9 +29,6 @@ public class ItineraryController {
 
 	@Autowired
 	ItineraryService itineraryServ;
-
-	@Autowired
-	TableCountRepository TableCountDao;
 
 	@RequestMapping(value = {
 			"/save" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")

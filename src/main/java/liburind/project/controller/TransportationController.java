@@ -16,19 +16,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import liburind.project.model.Destination;
-import liburind.project.service.TransportationCategoryService;
 import liburind.project.service.TransportationService;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/trans")
+@RequestMapping("/transportation")
 public class TransportationController {
 
 	@Autowired
 	TransportationService transServ;
-
-	@Autowired
-	TransportationCategoryService transCatgServ;
 
 	@RequestMapping(value = {
 			"/get" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
@@ -39,6 +35,36 @@ public class TransportationController {
 			JsonNode jsonNode = objectMapper.readTree(json);
 
 			return ResponseEntity.ok().body(transServ.get(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+		}
+	}
+
+	@RequestMapping(value = {
+			"/book" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> book(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(transServ.book(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+		}
+	}
+
+	@RequestMapping(value = {
+			"/list" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> getList(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(transServ.list(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());

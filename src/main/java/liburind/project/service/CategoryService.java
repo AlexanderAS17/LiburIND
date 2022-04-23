@@ -18,14 +18,14 @@ public class CategoryService {
 
 	@Autowired
 	CategoryRepository catgDao;
-	
+
 	@Autowired
 	TableCountRepository tblDao;
 
 	public Object save(JsonNode jsonNode) {
 		String categoryName = jsonNode.get("categoryName").asText();
-		
-		if(jsonNode.has("categoryId")) {
+
+		if (jsonNode.has("categoryId")) {
 			String categoryId = jsonNode.get("categoryId").asText();
 			Category category = new Category();
 			Optional<Category> catgOpt = catgDao.findById(categoryId);
@@ -38,15 +38,17 @@ public class CategoryService {
 			}
 			return category;
 		}
-		
+
 		Category category = new Category();
 		category.setCategoryName(categoryName);
-		Optional<TableCount> cntOpt = tblDao.findById("Category");
-		if(cntOpt.isPresent()) {
-			String id = String.format("CTG%03d", cntOpt.get().getCount() + 1);
-			category.setCategoryId(id);
-		}
-		
+
+		Optional<TableCount> countOpt = tblDao.findById("Category");
+		int count = countOpt.isPresent() ? countOpt.get().getCount() : 0;
+		tblDao.save(new TableCount("Category", count + 1));
+
+		String id = String.format("CTG%03d", count + 1);
+		category.setCategoryId(id);
+
 		catgDao.save(category);
 		return category;
 	}
