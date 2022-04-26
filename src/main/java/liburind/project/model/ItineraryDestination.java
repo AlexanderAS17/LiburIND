@@ -9,7 +9,7 @@ public class ItineraryDestination {
 
 	private String seqId;
 	private String destinationId;
-	private String destinationName;
+	private Destinations destination;
 	private LocalDateTime seqStartTime;
 	private LocalDateTime seqEndTime;
 

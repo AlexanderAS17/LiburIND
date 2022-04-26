@@ -23,7 +23,7 @@ public class DestinationSeq {
 	private String destinationId;
 	
 	@Transient
-	private String destinationName;
+	private Destinations destination;
 
 	public static void sortByDate(ArrayList<DestinationSeq> list) {
 		list.sort((o1, o2) -> o1.getSeqStartTime().compareTo(o2.getSeqStartTime()));

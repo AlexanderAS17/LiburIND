@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import liburind.project.model.Destination;
+import liburind.project.model.Destinations;
 import liburind.project.service.DestinationService;
 
 @CrossOrigin
@@ -38,7 +38,7 @@ public class DestinationController {
 			return ResponseEntity.ok().body(destinationServ.get(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destinations());
 		}
 	}
 
@@ -55,7 +55,7 @@ public class DestinationController {
 			return ResponseEntity.ok().body(destinationServ.getCategory(categoryId));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destinations>());
 		}
 	}
 
@@ -86,21 +86,6 @@ public class DestinationController {
 			JsonNode jsonNode = objectMapper.readTree(json);
 
 			return ResponseEntity.ok().body(destinationServ.save(jsonNode));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("error");
-		}
-	}
-
-	@RequestMapping(value = {
-			"/uptcatg" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> updateCategory(@RequestBody String json) throws IOException {
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			return ResponseEntity.ok().body(destinationServ.updateCategory(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("error");

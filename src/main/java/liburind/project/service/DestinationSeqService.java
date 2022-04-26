@@ -18,9 +18,9 @@ import liburind.project.dao.DestinationRepository;
 import liburind.project.dao.DestinationSeqRepository;
 import liburind.project.dao.ItineraryRepository;
 import liburind.project.helper.DataHelper;
-import liburind.project.model.Destination;
 import liburind.project.model.DestinationSeq;
 import liburind.project.model.DestinationSeqKey;
+import liburind.project.model.Destinations;
 import liburind.project.model.Itinerary;
 import liburind.project.model.ItineraryDestination;
 import liburind.project.model.ItineraryResponse;
@@ -63,9 +63,14 @@ public class DestinationSeqService {
 				ItineraryDestination itrDes = new ItineraryDestination();
 				itrDes.setSeqId(destinationSeq.getSeqKey().getSeqId());
 				itrDes.setDestinationId(destinationSeq.getDestinationId());
-				itrDes.setDestinationName(destinationSeq.getDestinationName());
 				itrDes.setSeqStartTime(destinationSeq.getSeqStartTime());
 				itrDes.setSeqEndTime(destinationSeq.getSeqEndTime());
+				Optional<Destinations> desOpt = desDao.findById(itrDes.getDestinationId());
+				if(desOpt.isPresent()) {
+					itrDes.setDestination(desOpt.get());
+				} else {
+					itrDes.setDestination(null);
+				}
 				arrDestination.add(itrDes);
 			}
 			resDays.setArrDestination(arrDestination);
@@ -78,12 +83,12 @@ public class DestinationSeqService {
 		if (jsonNode.has("itineraryId")) {
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
 			for (DestinationSeq destinationSeq : listDestSeq) {
-				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
-				String desName = "";
+				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
-					desName = desOpt.get().getDestinationName();
+					destinationSeq.setDestination(desOpt.get());
+				} else {
+					destinationSeq.setDestination(null);
 				}
-				destinationSeq.setDestinationName(desName);
 			}
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
@@ -119,10 +124,10 @@ public class DestinationSeqService {
 				destinationSeq.setSeqEndTime(DataHelper.toLongDate(objNode.get("endTime").asText()));
 				destinationSeq.setSeqPrice(seqPrice);
 
-				Optional<Destination> desOpt = desDao.findById(objNode.get("destinationId").asText());
+				Optional<Destinations> desOpt = desDao.findById(objNode.get("destinationId").asText());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestinationId(objNode.get("destinationId").asText());
-					destinationSeq.setDestinationName(desOpt.get().getDestinationName());
+					destinationSeq.setDestination(desOpt.get());
 				} else {
 					destinationSeq.setDestinationId("");
 				}

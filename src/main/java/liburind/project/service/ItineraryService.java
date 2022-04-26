@@ -134,7 +134,6 @@ public class ItineraryService {
 			destinationSeq.setSeqStartTime(itinerary.getStartDate().plusDays(i).atStartOfDay());
 			destinationSeq.setSeqPrice(BigDecimal.ZERO);
 			destinationSeq.setDestinationId("");
-			destinationSeq.setDestinationName("");
 
 			desSeqDao.save(destinationSeq);
 		}

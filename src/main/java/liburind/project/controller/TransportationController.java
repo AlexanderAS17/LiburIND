@@ -1,6 +1,7 @@
 package liburind.project.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import liburind.project.model.Destination;
+import liburind.project.model.Transportation;
+import liburind.project.model.TransportationCategory;
 import liburind.project.service.TransportationService;
 
 @CrossOrigin
@@ -37,7 +39,7 @@ public class TransportationController {
 			return ResponseEntity.ok().body(transServ.get(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Transportation>());
 		}
 	}
 
@@ -52,7 +54,7 @@ public class TransportationController {
 			return ResponseEntity.ok().body(transServ.book(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Transportation>());
 		}
 	}
 
@@ -67,7 +69,8 @@ public class TransportationController {
 			return ResponseEntity.ok().body(transServ.list(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ArrayList<TransportationCategory>());
 		}
 	}
 

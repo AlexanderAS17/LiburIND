@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import liburind.project.model.Destination;
 import liburind.project.service.DestinationSeqService;
 
 @CrossOrigin
@@ -37,7 +36,7 @@ public class DestinationSeqController {
 			return ResponseEntity.ok().body(destSeqServ.get(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
 		}
 	}
 
@@ -52,7 +51,7 @@ public class DestinationSeqController {
 			return ResponseEntity.ok().body(destSeqServ.save(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
 		}
 	}
 
@@ -70,7 +69,7 @@ public class DestinationSeqController {
 			return ResponseEntity.ok().body(destSeqServ.delete(itineraryId, date));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
 		}
 	}
 
