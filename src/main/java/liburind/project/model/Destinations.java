@@ -23,6 +23,7 @@ public class Destinations {
 
 	// Google
 	private String destinationAddress;
+	private String destinationPlaceId;
 	private String destinationGeometryLat;
 	private String destinationGeometryLng;
 	private String destinationPhoto;
@@ -46,7 +47,7 @@ public class Destinations {
 			String destinationDetail, String destinationAddress, String destinationGeometryLat,
 			String destinationGeometryLng, String destinationPhoto, List<String> destinationTimeOpen,
 			String destinationUrl, Integer destinationUsrJmlh, String destinationWebsite,
-			List<String> destinationType) {
+			List<String> destinationType, String destinationPlaceId) {
 		super();
 		this.destinationId = destinationId;
 		this.destinationName = destinationName;
@@ -61,6 +62,7 @@ public class Destinations {
 		this.destinationUsrJmlh = destinationUsrJmlh;
 		this.destinationWebsite = destinationWebsite;
 		this.destinationType = destinationType;
+		this.destinationPlaceId = destinationPlaceId;
 	}
 
 }

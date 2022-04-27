@@ -74,6 +74,8 @@ public class DestinationService {
 				destinationType.add(objNode.asText());
 			}
 		}
+		String destinationPlaceId = jsonNode.has("destinationPlaceId") ? jsonNode.get("destinationPlaceId").asText()
+				: "";
 
 		for (int i = 0; i < destinationType.size(); i++) {
 			destinationType.set(i, CaseUtils.toCamelCase(destinationType.get(i), true, ' ').replaceAll("_", " "));
@@ -81,7 +83,7 @@ public class DestinationService {
 
 		return new Destinations(destinationId, destinationName, destinationRating, destinationDetail,
 				destinationAddress, destinationGeometryLat, destinationGeometryLng, destinationPhoto,
-				destinationTimeOpen, destinationUrl, destinationUsrJmlh, destinationWebsite, destinationType);
+				destinationTimeOpen, destinationUrl, destinationUsrJmlh, destinationWebsite, destinationType, destinationPlaceId);
 	}
 
 	private Destinations getCategory(Destinations destination) {
