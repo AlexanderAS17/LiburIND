@@ -10,9 +10,12 @@ import liburind.project.model.Itinerary;
 public interface ItineraryRepository extends MongoRepository<Itinerary, String> {
 	
 	@Query("{itineraryUserId:'?0'}")
-	List<Itinerary> findByUser(String itineraryUserId);
+	List<Itinerary> findByUserId(String itineraryUserId);
 	
 	@Query("{publicFlag: ?0}")
 	List<Itinerary> findByFlag(Boolean publicFlag);
+	
+	@Query("{itineraryName: {$regex: '?0'}}")
+	List<Itinerary> findByName(String itineraryName);
 
 }

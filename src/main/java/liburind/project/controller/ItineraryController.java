@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import liburind.project.model.Destinations;
 import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 import liburind.project.service.ItineraryService;
@@ -66,10 +67,10 @@ public class ItineraryController {
 			String startDate = jsonNode.get("startDate").asText();
 			String endDate = jsonNode.get("endDate").asText();
 			String detail = jsonNode.has("detail") ? jsonNode.get("detail").asText() : "";
-			
+
 			Itinerary data = itineraryServ.update(id, name, publicFlag, startDate, endDate, detail);
-			
-			if(data == null) {
+
+			if (data == null) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Itinerary());
 			}
 			return ResponseEntity.ok().body(data);
@@ -138,9 +139,10 @@ public class ItineraryController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<Itinerary>());
 		}
 	}
-	
+
 	@RequestMapping(value = { "/public" }, method = RequestMethod.POST)
-	public ResponseEntity<?> getListPublic(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> getListPublic(@RequestBody String json)
+			throws JsonMappingException, JsonProcessingException {
 		ArrayList<Itinerary> arrItr = itineraryServ.getItrListPublic();
 		if (arrItr != null) {
 			return ResponseEntity.ok(arrItr);
@@ -162,6 +164,23 @@ public class ItineraryController {
 			return ResponseEntity.ok("Success");
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+		}
+	}
+
+	@RequestMapping(value = {
+			"/search" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> search(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			String itineraryName = jsonNode.get("destinationName").asText();
+
+			return ResponseEntity.ok().body(itineraryServ.search(itineraryName));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destinations>());
 		}
 	}
 

@@ -274,4 +274,14 @@ public class DestinationService {
 		return destination;
 	}
 
+	public Object search(String destinationName) {
+		ArrayList<Destinations> arrDest = new ArrayList<Destinations>();
+		List<Destinations> listDest = destDao.findByName(destinationName);
+		for (Destinations destination : listDest) {
+			destination = this.getCategory(destination);
+			arrDest.add(destination);
+		}
+		return arrDest;
+	}
+
 }

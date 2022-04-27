@@ -59,6 +59,23 @@ public class DestinationController {
 		}
 	}
 
+	@RequestMapping(value = {
+			"/search" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> search(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			String destinationName = jsonNode.get("destinationName").asText();
+
+			return ResponseEntity.ok().body(destinationServ.search(destinationName));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destinations>());
+		}
+	}
+
 	// Administrator
 	@RequestMapping(value = {
 			"/delete" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")

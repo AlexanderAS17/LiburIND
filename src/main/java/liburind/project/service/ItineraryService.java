@@ -219,7 +219,7 @@ public class ItineraryService {
 
 	public ArrayList<Itinerary> getItrList(String userId) {
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
-		List<Itinerary> arrItr = itineraryDao.findByUser(userId);
+		List<Itinerary> arrItr = itineraryDao.findByUserId(userId);
 		List<ItineraryUser> list = itineraryUserDao.findAll();
 		Integer count = 1;
 
@@ -323,6 +323,10 @@ public class ItineraryService {
 				itineraryUserDao.delete(itrUser);
 			}
 		}
+	}
+
+	public Object search(String itineraryName) {
+		return itineraryDao.findByName(itineraryName);
 	}
 
 }

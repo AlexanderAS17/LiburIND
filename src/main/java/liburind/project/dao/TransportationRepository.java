@@ -14,5 +14,8 @@ public interface TransportationRepository extends MongoRepository<Transportation
 	
 	@Query("{flagUsed: false}")
 	List<Transportation> findAllAvailable();
+	
+	@Query("{itineraryId:'?0'}")
+	List<Transportation> findByItr(String itineraryId);
 
 }

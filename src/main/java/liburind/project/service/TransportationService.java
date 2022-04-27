@@ -1,5 +1,6 @@
 package liburind.project.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import liburind.project.dao.TransportationCategoryRepository;
 import liburind.project.dao.TransportationRepository;
 import liburind.project.helper.DataHelper;
+import liburind.project.model.InvoiceResponse;
 import liburind.project.model.Transportation;
 import liburind.project.model.TransportationCategory;
 
@@ -78,8 +80,38 @@ public class TransportationService {
 
 				transDao.save(trans);
 			}
-			return arrData;
+			
+			BigDecimal sum = BigDecimal.ZERO;
+			for (Transportation transportation : arrData) {
+				if(transportation.getTransportationPrice() != null) {
+					sum.add(transportation.getTransportationPrice());
+				}
+			}
+			
+			InvoiceResponse response = new InvoiceResponse();
+			response.setTransArr(arrData);
+			response.setPriceSum(sum);
+			return response;
 		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("Check Param");
+		}
+	}
+
+	public Object endbook(JsonNode jsonNode) {
+		if(jsonNode.has("itineraryId")) {
+			String itineraryId = jsonNode.get("itineraryId").asText();
+			List<Transportation> arrTrans = transDao.findByItr(itineraryId);
+			
+			for (Transportation transportation : arrTrans) {
+				transportation.setItineraryId("");
+				transportation.setStartDate(null);
+				transportation.setEndDate(null);
+				transportation.setFlagUsed(false);
+
+				transDao.save(transportation);
+			}
+			return "OK";
+		} else {
 			return ResponseEntity.badRequest().body("Check Param");
 		}
 	}

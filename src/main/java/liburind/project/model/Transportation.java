@@ -1,5 +1,6 @@
 package liburind.project.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.data.annotation.Id;
@@ -15,6 +16,7 @@ public class Transportation {
 	private String transportationId;
 	private String transportationName;
 	private String transportationPhone;
+	private BigDecimal transportationPrice;
 	private String transCategoryId;
 	private String itineraryId;
 	private LocalDate startDate;
