@@ -1,5 +1,6 @@
 package liburind.project.controller;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import liburind.project.dao.UserRepository;
 import liburind.project.model.User;
+import liburind.project.service.EmailService;
 import liburind.project.service.UserService;
 
 @CrossOrigin
@@ -30,6 +33,9 @@ public class UserController {
 
 	@Autowired
 	UserService userServ;
+
+	@Autowired
+	EmailService emailServ;
 
 	@RequestMapping(value = { "/get" }, method = RequestMethod.POST)
 	public ResponseEntity<?> getUser(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
@@ -57,11 +63,14 @@ public class UserController {
 			Optional<User> userOpt = userDao.findByEmail(email);
 
 			if (userOpt.isPresent()) {
+				if (!userOpt.get().getFlagActive()) {
+					return ResponseEntity.badRequest().body("Not Actived");
+				}
 				if (!userServ.hashPassword(password).equals(userOpt.get().getUserPassword())) {
-					return ResponseEntity.badRequest().body(new User());
+					return ResponseEntity.badRequest().body("Wrong Password");
 				}
 			} else {
-				return ResponseEntity.badRequest().body(new User());
+				return ResponseEntity.badRequest().body("User Not Found");
 			}
 
 			return ResponseEntity.ok(userOpt.get());
@@ -71,7 +80,7 @@ public class UserController {
 	}
 
 	@RequestMapping(value = { "/register" }, method = RequestMethod.POST)
-	public ResponseEntity<?> register(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> register(@RequestBody String json) throws JsonMappingException, JsonProcessingException, NoSuchAlgorithmException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 
@@ -79,11 +88,7 @@ public class UserController {
 		String email = jsonNode.get("email").asText();
 		String password = jsonNode.get("password").asText();
 
-		try {
-			return ResponseEntity.ok(userServ.save(name, email, password));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().body("Error");
-		}
+		return ResponseEntity.ok(userServ.save(name, email, password));
 	}
 
 	@RequestMapping(value = { "/edit" }, method = RequestMethod.POST)
@@ -128,6 +133,17 @@ public class UserController {
 			}
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Error");
+		}
+	}
+
+	// Active Email
+	@RequestMapping(value = { "/active" }, method = RequestMethod.GET)
+	public ResponseEntity<?> active(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
+
+		try {
+			return ResponseEntity.ok().body(emailServ.active(key));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("Check Param");
 		}
 	}
 

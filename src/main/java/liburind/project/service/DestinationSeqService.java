@@ -37,6 +37,23 @@ public class DestinationSeqService {
 	@Autowired
 	ItineraryRepository itrDao;
 
+	private ItineraryDestination toModel(ItineraryDestination itr, Destinations des) {
+		itr.setDestinationId(des.getDestinationId());
+		itr.setDestinationName(des.getDestinationName());
+		itr.setDestinationRating(des.getDestinationRating());
+		itr.setDestinationDetail(des.getDestinationDetail());
+		itr.setDestinationAddress(des.getDestinationAddress());
+		itr.setDestinationPlaceId(des.getDestinationPlaceId());
+		itr.setDestinationGeometryLat(des.getDestinationGeometryLat());
+		itr.setDestinationGeometryLng(des.getDestinationGeometryLng());
+		itr.setDestinationPhoto(des.getDestinationPhoto());
+		itr.setDestinationTimeOpen(des.getDestinationTimeOpen());
+		itr.setDestinationUrl(des.getDestinationUrl());
+		itr.setDestinationUsrJmlh(des.getDestinationUsrJmlh());
+		itr.setDestinationWebsite(des.getDestinationWebsite());
+		return itr;
+	}
+
 	private ArrayList<ItineraryResponse> splitData(List<DestinationSeq> listDestSeq) {
 		ArrayList<ArrayList<DestinationSeq>> splited = new ArrayList<ArrayList<DestinationSeq>>();
 		ArrayList<DestinationSeq> arrData = new ArrayList<DestinationSeq>();
@@ -52,7 +69,7 @@ public class DestinationSeqService {
 			prevData = destinationSeq;
 		}
 		splited.add(arrData);
-		
+
 		for (ArrayList<DestinationSeq> perDays : splited) {
 			ItineraryResponse resDays = new ItineraryResponse();
 			resDays.setSeqDate(perDays.get(0).getSeqKey().getSeqDate());
@@ -66,10 +83,8 @@ public class DestinationSeqService {
 				itrDes.setSeqStartTime(destinationSeq.getSeqStartTime());
 				itrDes.setSeqEndTime(destinationSeq.getSeqEndTime());
 				Optional<Destinations> desOpt = desDao.findById(itrDes.getDestinationId());
-				if(desOpt.isPresent()) {
-					itrDes.setDestination(desOpt.get());
-				} else {
-					itrDes.setDestination(null);
+				if (desOpt.isPresent()) {
+					itrDes = this.toModel(itrDes, desOpt.get());
 				}
 				arrDestination.add(itrDes);
 			}
@@ -161,6 +176,57 @@ public class DestinationSeqService {
 			}
 		}
 		return "Data Deleted";
+	}
+
+	@Transactional
+	public Object saveone(JsonNode jsonNode) {
+		if(jsonNode.has("itineraryId")) {
+			Optional<Itinerary> itrOpt = itrDao.findById(jsonNode.get("itineraryId").asText());
+			if (itrOpt.isPresent()) {
+				DestinationSeq destinationSeq = new DestinationSeq();
+				Destinations destination = new Destinations();
+				String destinationPlaceId = jsonNode.has("destinationPlaceId") ? jsonNode.get("destinationPlaceId").asText()
+						: "NoData";
+				if(!"NoData".equals(destinationPlaceId)) {
+					Optional<Destinations> desOpt = desDao.findByPlaceId(destinationPlaceId);
+					if(desOpt.isPresent()) {
+						destination = desOpt.get();
+					} else {
+						destination = Destinations.mapJson(jsonNode);
+						desDao.save(destination);
+					}
+					
+					Integer count = 1;
+					LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText());
+					List<DestinationSeq> listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
+					if(listDes.size() > 0) {
+						for (DestinationSeq desSeq : listDes) {
+							if(seqDate.equals(desSeq.getSeqStartTime().toLocalDate()) && !"".equals(desSeq.getDestinationId())) {
+								count++;
+							}
+						}
+					}
+					
+					String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText() + " - " + count++;
+					DestinationSeqKey seqKey = new DestinationSeqKey(seqId, seqDate);
+					destinationSeq.setSeqKey(seqKey);
+					destinationSeq.setItineraryId(jsonNode.get("itineraryId").asText());
+					destinationSeq.setSeqStartTime(DataHelper.toLongDate(jsonNode.get("startTime").asText()));
+					destinationSeq.setSeqEndTime(DataHelper.toLongDate(jsonNode.get("endTime").asText()));
+					destinationSeq.setSeqPrice(DataHelper.toBigDecimal(jsonNode.get("price").asText()));
+					destinationSeq.setDestinationId(destination.getDestinationId());
+					destinationSeq.setDestination(destination);
+					desSeqDao.save(destinationSeq);
+					
+					listDes.add(destinationSeq);
+					DestinationSeq.sortByDate(listDes);
+					
+					ArrayList<ItineraryResponse> arrData = this.splitData(listDes);
+					return arrData;
+				}
+			}
+		} 
+		return ResponseEntity.badRequest().body("Check Param");
 	}
 
 }

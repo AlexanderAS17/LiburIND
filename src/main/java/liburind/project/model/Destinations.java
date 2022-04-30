@@ -1,13 +1,16 @@
 package liburind.project.model;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.text.CaseUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import lombok.Data;
 
@@ -65,4 +68,52 @@ public class Destinations {
 		this.destinationPlaceId = destinationPlaceId;
 	}
 
+	public static Destinations mapJson(JsonNode jsonNode) {
+		String destinationId = jsonNode.has("destinationId") ? jsonNode.get("destinationId").asText() : "";
+		String destinationName = jsonNode.has("destinationName") ? jsonNode.get("destinationName").asText() : "";
+		BigDecimal destinationRating = jsonNode.has("destinationRating")
+				? new BigDecimal(jsonNode.get("destinationRating").asText())
+				: BigDecimal.ZERO;
+		String destinationDetail = jsonNode.has("destinationDetail") ? jsonNode.get("destinationDetail").asText() : "";
+
+		// Google
+		String destinationAddress = jsonNode.has("destinationAddress") ? jsonNode.get("destinationAddress").asText()
+				: "";
+		String destinationGeometryLat = jsonNode.has("destinationGeometryLoc")
+				? jsonNode.get("destinationGeometryLoc").get("lat").asText()
+				: "";
+		String destinationGeometryLng = jsonNode.has("destinationGeometryLoc")
+				? jsonNode.get("destinationGeometryLoc").get("lng").asText()
+				: "";
+		String destinationPhoto = jsonNode.has("destinationPhoto") ? jsonNode.get("destinationPhoto").asText() : "";
+		List<String> destinationTimeOpen = new ArrayList<String>();
+		JsonNode arrNode = jsonNode.get("destinationTimeOpen");
+		if (arrNode.isArray()) {
+			for (final JsonNode objNode : arrNode) {
+				destinationTimeOpen.add(objNode.asText());
+			}
+		}
+		String destinationUrl = jsonNode.has("destinationUrl") ? jsonNode.get("destinationUrl").asText() : "";
+		Integer destinationUsrJmlh = jsonNode.has("destinationUsrRating") ? jsonNode.get("destinationUsrRating").asInt()
+				: 0;
+		String destinationWebsite = jsonNode.has("destinationWebsite") ? jsonNode.get("destinationWebsite").asText()
+				: "";
+		List<String> destinationType = new ArrayList<String>();
+		arrNode = jsonNode.get("destinationType");
+		if (arrNode.isArray()) {
+			for (final JsonNode objNode : arrNode) {
+				destinationType.add(objNode.asText());
+			}
+		}
+		String destinationPlaceId = jsonNode.has("destinationPlaceId") ? jsonNode.get("destinationPlaceId").asText()
+				: "";
+
+		for (int i = 0; i < destinationType.size(); i++) {
+			destinationType.set(i, CaseUtils.toCamelCase(destinationType.get(i), true, ' ').replaceAll("_", " "));
+		}
+
+		return new Destinations(destinationId, destinationName, destinationRating, destinationDetail,
+				destinationAddress, destinationGeometryLat, destinationGeometryLng, destinationPhoto,
+				destinationTimeOpen, destinationUrl, destinationUsrJmlh, destinationWebsite, destinationType, destinationPlaceId);
+	}
 }

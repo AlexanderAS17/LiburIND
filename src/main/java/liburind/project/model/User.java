@@ -12,12 +12,17 @@ import lombok.Data;
 public class User {
 	
 	@Id
+	@JsonIgnore
 	private String userId;
 	private String userName;
 	private String userEmail;
 	@JsonIgnore
 	private String userPassword;
 	private String roleId;
+	@JsonIgnore
+	private Boolean flagActive;
+	@JsonIgnore
+	private String key;
 	
 	public User(String userId, String userName, String userEmail, String userPassword, String roleId) {
 		super();
