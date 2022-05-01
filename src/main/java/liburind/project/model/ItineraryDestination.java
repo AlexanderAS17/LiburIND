@@ -1,6 +1,7 @@
 package liburind.project.model;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,8 +11,7 @@ import lombok.Data;
 public class ItineraryDestination {
 
 	private String seqId;
-	private LocalDateTime seqStartTime;
-	private LocalDateTime seqEndTime;
+	private LocalDate seqDate;
 
 	//Destinasi
 	private String destinationId;

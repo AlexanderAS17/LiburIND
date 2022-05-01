@@ -12,7 +12,6 @@ import lombok.Data;
 public class User {
 	
 	@Id
-	@JsonIgnore
 	private String userId;
 	private String userName;
 	private String userEmail;

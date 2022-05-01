@@ -63,7 +63,7 @@ public class DestinationSeqController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
 
-			String date = jsonNode.get("date").asText();
+			String date = jsonNode.get("date").asText().replaceAll("-", "");
 			String itineraryId = jsonNode.get("itineraryId").asText();
 
 			return ResponseEntity.ok().body(destSeqServ.delete(itineraryId, date));

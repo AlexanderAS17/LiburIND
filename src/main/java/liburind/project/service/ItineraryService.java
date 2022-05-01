@@ -69,8 +69,8 @@ public class ItineraryService {
 			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
 			LocalDate date = itinerary.getStartDate();
 			for (DestinationSeq destinationSeq : listSeq) {
-				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
-					date = destinationSeq.getSeqKey().getSeqDate();
+				if (destinationSeq.getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqDate();
 				}
 			}
 			itinerary.setEndDate(date);
@@ -129,9 +129,9 @@ public class ItineraryService {
 					+ DataHelper.dateToString(itinerary.getStartDate().plusDays(i)) + " - 1";
 			DestinationSeqKey seqKey = new DestinationSeqKey(desSeqId, itinerary.getStartDate().plusDays(i));
 
-			destinationSeq.setSeqKey(seqKey);
+			destinationSeq.setSeqId(desSeqId);
 			destinationSeq.setItineraryId(itinerary.getItineraryId());
-			destinationSeq.setSeqStartTime(itinerary.getStartDate().plusDays(i).atStartOfDay());
+			destinationSeq.setSeqDate(itinerary.getStartDate().plusDays(i));
 			destinationSeq.setSeqPrice(BigDecimal.ZERO);
 			destinationSeq.setDestinationId("");
 
@@ -227,8 +227,8 @@ public class ItineraryService {
 			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
 			LocalDate date = itinerary.getStartDate();
 			for (DestinationSeq destinationSeq : listSeq) {
-				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
-					date = destinationSeq.getSeqKey().getSeqDate();
+				if (destinationSeq.getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqDate();
 				}
 			}
 			itinerary.setEndDate(date);
@@ -244,8 +244,8 @@ public class ItineraryService {
 						List<DestinationSeq> listSeq = desSeqDao.findByItrId(itrOpt.get().getItineraryId());
 						LocalDate date = itrOpt.get().getStartDate();
 						for (DestinationSeq destinationSeq : listSeq) {
-							if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
-								date = destinationSeq.getSeqKey().getSeqDate();
+							if (destinationSeq.getSeqDate().isAfter(date)) {
+								date = destinationSeq.getSeqDate();
 							}
 						}
 						Itinerary itinerary = itrOpt.get();
@@ -273,8 +273,8 @@ public class ItineraryService {
 			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
 			LocalDate date = itinerary.getStartDate();
 			for (DestinationSeq destinationSeq : listSeq) {
-				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
-					date = destinationSeq.getSeqKey().getSeqDate();
+				if (destinationSeq.getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqDate();
 				}
 			}
 			itinerary.setEndDate(date);
@@ -291,8 +291,8 @@ public class ItineraryService {
 		if (itrOpt.isPresent()) {
 			LocalDate date = itrOpt.get().getStartDate();
 			for (DestinationSeq destinationSeq : listSeq) {
-				if (destinationSeq.getSeqKey().getSeqDate().isAfter(date)) {
-					date = destinationSeq.getSeqKey().getSeqDate();
+				if (destinationSeq.getSeqDate().isAfter(date)) {
+					date = destinationSeq.getSeqDate();
 				}
 			}
 			Itinerary itr = itrOpt.get();

@@ -61,7 +61,7 @@ public class DestinationSeqService {
 		DestinationSeq prevData = new DestinationSeq();
 		for (DestinationSeq destinationSeq : listDestSeq) {
 			if (arrData.size() > 0
-					&& !prevData.getSeqKey().getSeqDate().isEqual(destinationSeq.getSeqKey().getSeqDate())) {
+					&& !prevData.getSeqDate().isEqual(destinationSeq.getSeqDate())) {
 				splited.add(arrData);
 				arrData = new ArrayList<DestinationSeq>();
 			}
@@ -72,16 +72,15 @@ public class DestinationSeqService {
 
 		for (ArrayList<DestinationSeq> perDays : splited) {
 			ItineraryResponse resDays = new ItineraryResponse();
-			resDays.setSeqDate(perDays.get(0).getSeqKey().getSeqDate());
+			resDays.setSeqDate(perDays.get(0).getSeqDate());
 			resDays.setSeqPrice(perDays.get(0).getSeqPrice());
 			resDays.setItineraryId(perDays.get(0).getItineraryId());
 			List<ItineraryDestination> arrDestination = new ArrayList<ItineraryDestination>();
 			for (DestinationSeq destinationSeq : perDays) {
 				ItineraryDestination itrDes = new ItineraryDestination();
-				itrDes.setSeqId(destinationSeq.getSeqKey().getSeqId());
+				itrDes.setSeqId(destinationSeq.getSeqId());
 				itrDes.setDestinationId(destinationSeq.getDestinationId());
-				itrDes.setSeqStartTime(destinationSeq.getSeqStartTime());
-				itrDes.setSeqEndTime(destinationSeq.getSeqEndTime());
+				itrDes.setSeqDate(destinationSeq.getSeqDate());
 				Optional<Destinations> desOpt = desDao.findById(itrDes.getDestinationId());
 				if (desOpt.isPresent()) {
 					itrDes = this.toModel(itrDes, desOpt.get());
@@ -118,10 +117,10 @@ public class DestinationSeqService {
 	public Object save(JsonNode jsonNode) {
 		List<DestinationSeq> arrDest = new ArrayList<DestinationSeq>();
 		String itineraryId = jsonNode.get("itineraryId").asText();
-		LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText());
+		LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", ""));
 		BigDecimal seqPrice = DataHelper.toBigDecimal(jsonNode.get("price").asText());
 		int count = 1;
-		this.delete(itineraryId, jsonNode.get("date").asText());
+		this.delete(itineraryId, jsonNode.get("date").asText().replaceAll("-", ""));
 
 		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
 		LocalDate startDateTime = null;
@@ -129,14 +128,13 @@ public class DestinationSeqService {
 		if (jsonNode.has("data") && jsonNode.get("data").isArray()) {
 			for (JsonNode objNode : jsonNode.get("data")) {
 				DestinationSeq destinationSeq = new DestinationSeq();
-				String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText() + " - "
+				String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText().replaceAll("-", "") + " - "
 						+ count++;
 				DestinationSeqKey seqKey = new DestinationSeqKey(seqId, seqDate);
 
-				destinationSeq.setSeqKey(seqKey);
+				destinationSeq.setSeqId(seqId);
 				destinationSeq.setItineraryId(itineraryId);
-				destinationSeq.setSeqStartTime(DataHelper.toLongDate(objNode.get("startTime").asText()));
-				destinationSeq.setSeqEndTime(DataHelper.toLongDate(objNode.get("endTime").asText()));
+				destinationSeq.setSeqDate(DataHelper.toDate(objNode.get("date").asText().replaceAll("-", "")));
 				destinationSeq.setSeqPrice(seqPrice);
 
 				Optional<Destinations> desOpt = desDao.findById(objNode.get("destinationId").asText());
@@ -150,8 +148,8 @@ public class DestinationSeqService {
 				desSeqDao.save(destinationSeq);
 				arrDest.add(destinationSeq);
 
-				if (startDateTime == null || destinationSeq.getSeqKey().getSeqDate().isBefore(startDateTime)) {
-					startDateTime = destinationSeq.getSeqKey().getSeqDate();
+				if (startDateTime == null || destinationSeq.getSeqDate().isBefore(startDateTime)) {
+					startDateTime = destinationSeq.getSeqDate();
 				}
 			}
 
@@ -171,7 +169,7 @@ public class DestinationSeqService {
 		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
 		LocalDate deletedDate = DataHelper.toDate(date);
 		for (DestinationSeq destinationSeq : listData) {
-			if (destinationSeq.getSeqKey().getSeqDate().equals(deletedDate)) {
+			if (destinationSeq.getSeqDate().equals(deletedDate)) {
 				desSeqDao.delete(destinationSeq);
 			}
 		}
@@ -197,22 +195,21 @@ public class DestinationSeqService {
 					}
 					
 					Integer count = 1;
-					LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText());
+					LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-",""));
 					List<DestinationSeq> listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
 					if(listDes.size() > 0) {
 						for (DestinationSeq desSeq : listDes) {
-							if(seqDate.equals(desSeq.getSeqStartTime().toLocalDate()) && !"".equals(desSeq.getDestinationId())) {
+							if(seqDate.equals(desSeq.getSeqDate()) && !"".equals(desSeq.getDestinationId())) {
 								count++;
 							}
 						}
 					}
 					
-					String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText() + " - " + count++;
+					String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText().replaceAll("-","") + " - " + count++;
 					DestinationSeqKey seqKey = new DestinationSeqKey(seqId, seqDate);
-					destinationSeq.setSeqKey(seqKey);
+					destinationSeq.setSeqId(seqId);
 					destinationSeq.setItineraryId(jsonNode.get("itineraryId").asText());
-					destinationSeq.setSeqStartTime(DataHelper.toLongDate(jsonNode.get("startTime").asText()));
-					destinationSeq.setSeqEndTime(DataHelper.toLongDate(jsonNode.get("endTime").asText()));
+					destinationSeq.setSeqDate(DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", "")));
 					destinationSeq.setSeqPrice(DataHelper.toBigDecimal(jsonNode.get("price").asText()));
 					destinationSeq.setDestinationId(destination.getDestinationId());
 					destinationSeq.setDestination(destination);
