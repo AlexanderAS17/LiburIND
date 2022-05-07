@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import liburind.project.dao.DestinationRepository;
 import liburind.project.dao.DestinationSeqRepository;
 import liburind.project.dao.ItineraryRepository;
+import liburind.project.dao.TableCountRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.DestinationSeq;
 import liburind.project.model.DestinationSeqKey;
@@ -24,6 +25,7 @@ import liburind.project.model.Destinations;
 import liburind.project.model.Itinerary;
 import liburind.project.model.ItineraryDestination;
 import liburind.project.model.ItineraryResponse;
+import liburind.project.model.TableCount;
 
 @Service
 public class DestinationSeqService {
@@ -36,6 +38,9 @@ public class DestinationSeqService {
 
 	@Autowired
 	ItineraryRepository itrDao;
+	
+	@Autowired
+	TableCountRepository tblDao;
 
 	private ItineraryDestination toModel(ItineraryDestination itr, Destinations des) {
 		itr.setDestinationId(des.getDestinationId());
@@ -191,6 +196,16 @@ public class DestinationSeqService {
 						destination = desOpt.get();
 					} else {
 						destination = Destinations.mapJson(jsonNode);
+						String id = "";
+						Optional<TableCount> tblCount = tblDao.findById("Destination");
+						if (tblCount.isPresent()) {
+							id = String.format("DES%03d", tblCount.get().getCount() + 1);
+							tblDao.save(new TableCount("Destination", tblCount.get().getCount() + 1));
+						} else {
+							id = String.format("DES%03d", 1);
+							tblDao.save(new TableCount("Destination", 1));
+						}
+						destination.setDestinationId(id);
 						desDao.save(destination);
 					}
 					
@@ -199,14 +214,17 @@ public class DestinationSeqService {
 					List<DestinationSeq> listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
 					if(listDes.size() > 0) {
 						for (DestinationSeq desSeq : listDes) {
-							if(seqDate.equals(desSeq.getSeqDate()) && !"".equals(desSeq.getDestinationId())) {
-								count++;
+							if(seqDate.equals(desSeq.getSeqDate())) {
+								if("".equals(desSeq.getDestinationId())) {
+									desSeqDao.delete(desSeq);
+								} else {
+									count++;
+								}
 							}
 						}
 					}
 					
 					String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText().replaceAll("-","") + " - " + count++;
-					DestinationSeqKey seqKey = new DestinationSeqKey(seqId, seqDate);
 					destinationSeq.setSeqId(seqId);
 					destinationSeq.setItineraryId(jsonNode.get("itineraryId").asText());
 					destinationSeq.setSeqDate(DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", "")));
@@ -224,6 +242,13 @@ public class DestinationSeqService {
 			}
 		} 
 		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public void deleteone(String seqId) {
+		Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(seqId);
+		if(desSeqOpt.isPresent()) {
+			desSeqDao.delete(desSeqOpt.get());
+		}
 	}
 
 }

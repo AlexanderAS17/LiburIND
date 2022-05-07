@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -95,6 +96,7 @@ public class ItineraryController {
 		}
 	}
 
+	//inviteFriend
 	@RequestMapping(value = { "/updateuser" }, method = RequestMethod.POST)
 	public ResponseEntity<?> updateUser(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -181,6 +183,16 @@ public class ItineraryController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destinations>());
+		}
+	}
+	
+	@RequestMapping(value = { "/join" }, method = RequestMethod.GET)
+	public ResponseEntity<?> join(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
+
+		try {
+			return ResponseEntity.ok().body(itineraryServ.active(key));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body("Check Param");
 		}
 	}
 

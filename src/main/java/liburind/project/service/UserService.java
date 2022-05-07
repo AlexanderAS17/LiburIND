@@ -54,7 +54,6 @@ public class UserService {
 			user.setUserId(id);
 			user.setUserName(name);
 
-			// Validasi email
 			String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}";
 			Pattern pattern = Pattern.compile(regex);
 			Matcher matcher = pattern.matcher(email);

@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import liburind.project.dao.UserRepository;
+import liburind.project.helper.DataHelper;
 import liburind.project.model.User;
 
 @Service
@@ -24,18 +25,7 @@ public class EmailService {
 	@Autowired
 	UserRepository usrDao;
 
-	private String getAlphaNumericString(int n) {
-		String AlphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "0123456789" + "abcdefghijklmnopqrstuvxyz";
-		StringBuilder sb = new StringBuilder(n);
-
-		for (int i = 0; i < n; i++) {
-			int index = (int) (AlphaNumericString.length() * Math.random());
-			sb.append(AlphaNumericString.charAt(index));
-		}
-		return sb.toString();
-	}
-
-	public void email(User user) {
+	public MimeMessage generateMessage() {
 		String from = "liburind@gmail.com";
 		String host = "smtp.gmail.com";
 		Properties properties = System.getProperties();
@@ -56,14 +46,44 @@ public class EmailService {
 		try {
 			MimeMessage message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(from));
+			return message;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	public void email(User user) {
+		try {
+			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
 			message.setSubject("This is the Subject Line!");
 
-			String key = this.getAlphaNumericString(30) + user.getUserId().substring(3,6);
+			String key = DataHelper.getAlphaNumericString(30) + user.getUserId().substring(3, 6);
 			user.setKey(key);
 			usrDao.save(user);
 
-			message.setText("This is actual message\nhttps://liburind.herokuapp.com/user/active?key=" + key);
+			message.setText("Click Link Below!\nhttps://liburind.herokuapp.com/user/active?key=" + key);
+
+			System.out.println("sending...");
+			Transport.send(message);
+			System.out.println("Sent message successfully....");
+		} catch (MessagingException mex) {
+			mex.printStackTrace();
+		}
+	}
+
+	public void invitefriend(String itineraryId, User user) {
+		try {
+			MimeMessage message = this.generateMessage();
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
+			message.setSubject("This is the Subject Line!");
+
+			String key = DataHelper.getAlphaNumericString(24) + itineraryId.substring(3, 6)
+					+ user.getUserId().substring(3, 6);
+			user.setKey(key);
+			usrDao.save(user);
+
+			message.setText("Click Link to Join!\nhttps://liburind.herokuapp.com/itinerary/join?key=" + key);
 
 			System.out.println("sending...");
 			Transport.send(message);
@@ -80,6 +100,7 @@ public class EmailService {
 			if (user.getKey().equals(key)) {
 				user.setFlagActive(true);
 				usrDao.save(user);
+				// Return PHP (?)
 				return "OKEEEE";
 			}
 		}

@@ -11,14 +11,17 @@ public class ItineraryUser {
 	
 	@Id
 	private ItineraryUserKey iteneraryUserKey;
+	private Boolean activeFlag;
 
 	public ItineraryUser(ItineraryUserKey iteneraryUserKey) {
 		super();
 		this.iteneraryUserKey = iteneraryUserKey;
+		this.activeFlag = true;
 	}
 
 	public ItineraryUser() {
 		super();
+		this.activeFlag = true;
 	}
 	
 	

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,6 +47,9 @@ public class ItineraryService {
 
 	@Autowired
 	DestinationSeqRepository desSeqDao;
+
+	@Autowired
+	EmailService emailServ;
 
 	public Itinerary update(String id, String name, boolean publicFlag, String startDate, String endDate,
 			String detail) {
@@ -118,6 +122,7 @@ public class ItineraryService {
 		ItineraryUser itineraryUser = new ItineraryUser();
 		ItineraryUserKey key = new ItineraryUserKey(itinerary.getItineraryId(), itinerary.getItineraryUserId());
 		itineraryUser.setIteneraryUserKey(key);
+		itineraryUser.setActiveFlag(true);
 
 		itineraryDao.save(itinerary);
 		itineraryUserDao.save(itineraryUser);
@@ -169,7 +174,8 @@ public class ItineraryService {
 		String itrKey = jsonNode.get("itineraryId").asText();
 
 		for (ItineraryUser itineraryUser : userList) {
-			if (itrKey.equals(itineraryUser.getIteneraryUserKey().getItineraryId())) {
+			if (itrKey.equals(itineraryUser.getIteneraryUserKey().getItineraryId())
+					&& itineraryUser.getActiveFlag() == true) {
 				flagItr = true;
 				oldUser.add(itineraryUser.getIteneraryUserKey().getUserId());
 			}
@@ -178,11 +184,13 @@ public class ItineraryService {
 		if (flagItr) {
 			Optional<Itinerary> itrOpt = itineraryDao.findById(itrKey);
 			if (itrOpt.isPresent()) {
+				// Get User Pembuat
 				HashMap<String, ItineraryUser> map = new HashMap<String, ItineraryUser>();
 				ItineraryUser mainUser = new ItineraryUser(
 						new ItineraryUserKey(itrOpt.get().getItineraryId(), itrOpt.get().getItineraryUserId()));
 				map.put(itrOpt.get().getItineraryUserId(), mainUser);
 
+				// Mapping semua user tambahan
 				for (int i = 1; i < jsonNode.size(); i++) {
 					String userKey = jsonNode.get("itineraryUser" + i).asText();
 					ItineraryUser itrUser = new ItineraryUser(new ItineraryUserKey(itrKey, userKey));
@@ -190,11 +198,14 @@ public class ItineraryService {
 					map.put(userKey, itrUser);
 				}
 
+				// Pisahin hanya yg baru
 				for (int i = 0; i < oldUser.size(); i++) {
 					if (map.containsKey(oldUser.get(i))) {
 						map.remove(oldUser.get(i));
-					} else {
-						itineraryUserDao.delete(new ItineraryUser(new ItineraryUserKey(itrKey, oldUser.get(i))));
+						// Kalau ga diinvite di delete
+						// } else {
+						// itineraryUserDao.delete(new ItineraryUser(new ItineraryUserKey(itrKey,
+						// oldUser.get(i))));
 					}
 				}
 
@@ -205,7 +216,10 @@ public class ItineraryService {
 						flagItr = true;
 						Optional<User> userOpt = userDao.findById(itineraryUser.getIteneraryUserKey().getUserId());
 						if (userOpt.isPresent()) {
+							itineraryUser.setActiveFlag(false);
 							itineraryUserDao.save(itineraryUser);
+							// Kirim Email Aktifasi
+							emailServ.invitefriend(jsonNode.get("itineraryId").asText(), userOpt.get());
 						}
 					}
 				}
@@ -236,7 +250,8 @@ public class ItineraryService {
 		}
 
 		for (ItineraryUser itineraryUser : list) {
-			if (userId.equals(itineraryUser.getIteneraryUserKey().getUserId())) {
+			if (userId.equals(itineraryUser.getIteneraryUserKey().getUserId())
+					&& itineraryUser.getActiveFlag() == true) {
 				Optional<Itinerary> itrOpt = itineraryDao
 						.findById(itineraryUser.getIteneraryUserKey().getItineraryId());
 				if (itrOpt.isPresent()) {
@@ -309,7 +324,7 @@ public class ItineraryService {
 				itineraryDao.delete(itrOpt.get());
 				ArrayList<User> arrUser = this.getUser(itineraryId);
 				List<DestinationSeq> listSeq = desSeqDao.findByItrId(itineraryId);
-				
+
 				for (DestinationSeq destinationSeq : listSeq) {
 					desSeqDao.delete(destinationSeq);
 				}
@@ -327,6 +342,20 @@ public class ItineraryService {
 
 	public Object search(String itineraryName) {
 		return itineraryDao.findByName(itineraryName);
+	}
+
+	public Object active(String key) {
+		List<ItineraryUser> userList = itineraryUserDao.findAll();
+		for (ItineraryUser itineraryUser : userList) {
+			if (key.substring(24, 27).equals(itineraryUser.getIteneraryUserKey().getItineraryId().substring(3, 6))
+					&& key.substring(27, 30)
+							.equals(itineraryUser.getIteneraryUserKey().getUserId().substring(3, 6))) {
+				itineraryUser.setActiveFlag(true);
+				itineraryUserDao.save(itineraryUser);
+				return "OKEEEE";
+			}
+		}
+		return ResponseEntity.badRequest().body("Invite Friend Deleted");
 	}
 
 }
