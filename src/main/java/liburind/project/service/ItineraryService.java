@@ -23,7 +23,6 @@ import liburind.project.dao.TableCountRepository;
 import liburind.project.dao.UserRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.DestinationSeq;
-import liburind.project.model.DestinationSeqKey;
 import liburind.project.model.Itinerary;
 import liburind.project.model.ItineraryUser;
 import liburind.project.model.ItineraryUserKey;
@@ -137,8 +136,7 @@ public class ItineraryService {
 		for (int i = 0; i <= days; i++) {
 			DestinationSeq destinationSeq = new DestinationSeq();
 			String desSeqId = itinerary.getItineraryId() + " - "
-					+ DataHelper.dateToString(itinerary.getStartDate().plusDays(i)) + " - 1";
-			DestinationSeqKey seqKey = new DestinationSeqKey(desSeqId, itinerary.getStartDate().plusDays(i));
+					+ DataHelper.dateToString(itinerary.getStartDate().plusDays(i)) + " - 1"; //Cek
 
 			destinationSeq.setSeqId(desSeqId);
 			destinationSeq.setItineraryId(itinerary.getItineraryId());
@@ -365,6 +363,7 @@ public class ItineraryService {
 
 	public Object publish(JsonNode jsonNode) {
 		String itineraryId = jsonNode.get("itineraryId").asText();
+		String detail = jsonNode.get("detail").asText();
 
 		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
 		if (itrOpt.isPresent()) {
@@ -382,6 +381,7 @@ public class ItineraryService {
 			itr.setItineraryId(id);
 			itr.setPublicFlag(true);
 			itr.setItineraryUserId("");
+			itr.setDetail(detail);
 			itineraryDao.save(itr);
 
 			List<DestinationSeq> listDest = desSeqDao.findByItrId(itineraryId);
@@ -424,7 +424,8 @@ public class ItineraryService {
 			int incDate = 0;
 			for (DestinationSeq data : listDest) {
 				String key = data.getSeqId().replaceAll("PUB", "");
-				data.setSeqId(id + " - " + DataHelper.dateToString(date.plusDays(incDate)) + key.substring(17, key.length()));
+				data.setSeqId(
+						id + " - " + DataHelper.dateToString(date.plusDays(incDate)) + key.substring(17, key.length()));
 				data.setItineraryId(id);
 				desSeqDao.save(data);
 				incDate++;

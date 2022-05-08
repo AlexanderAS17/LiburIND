@@ -61,6 +61,13 @@ public class UserService {
 				return ResponseEntity.badRequest().body("Check Email");
 			}
 			user.setUserEmail(email);
+			
+			String regexPassword = "[A-Z]";
+			Pattern patternPassword = Pattern.compile(regexPassword);
+			Matcher matcherPassword = patternPassword.matcher(password);
+			if(!matcherPassword.matches()) {
+				
+			}
 			user.setUserPassword(this.hashPassword(password));
 			user.setRoleId("roleUser");
 			user.setFlagActive(false);

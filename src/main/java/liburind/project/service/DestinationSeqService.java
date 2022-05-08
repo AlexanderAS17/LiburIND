@@ -281,7 +281,7 @@ public class DestinationSeqService {
 	@Transactional
 	public Object optimize(JsonNode jsonNode) throws JsonMappingException, JsonProcessingException {
 		String itineraryId = jsonNode.get("itineraryId").asText();
-		LocalDate date = DataHelper.toDate(jsonNode.get("date").asText());
+		LocalDate date = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", ""));
 		String startDest = jsonNode.get("start").asText();
 		String endDest = jsonNode.get("end").asText();
 		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
@@ -293,6 +293,7 @@ public class DestinationSeqService {
 					arrDes.add(destinationSeq);
 				}
 			}
+			DestinationSeq.sortByDate(arrDes);
 
 			String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
 			String start = "place_id:" + startDest;
@@ -357,8 +358,7 @@ public class DestinationSeqService {
 							desSeq.setDistance("");
 							desSeq.setDuration("");
 						}
-						arrDes.set(i, desSeq);
-						desSeqDao.save(arrDes.get(i));
+						desSeqDao.save(desSeq);
 					}
 				}
 

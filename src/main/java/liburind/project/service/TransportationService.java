@@ -5,14 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -100,27 +98,32 @@ public class TransportationService {
 			String userId = jsonNode.get("userId").asText();
 			LocalDate startDate = DataHelper.toDate(jsonNode.get("startDate").asText());
 			Integer duration = jsonNode.get("duration").asInt();
-			LocalDate endDate = startDate.plusDays(duration - 1);
+			LocalDate endDate = startDate.plusDays(duration);
 
-			for (int i = 0; i < num; i++) {
-				Transportation trans = list.get(i);
-				trans.setItineraryId(itineraryId);
-				trans.setStartDate(startDate);
-				trans.setEndDate(endDate);
-				trans.setFlagUsed(true);
-				trans.setUserId(userId);
-				arrData.add(trans);
+			int count = 0;
+			for (int i = 0; i < list.size() && count < num; i++) {
+				if (list.get(i).getFlagUsed() == false) {
+					count++;
+					Transportation trans = list.get(i);
+					trans.setItineraryId(itineraryId);
+					trans.setStartDate(startDate);
+					trans.setEndDate(endDate);
+					trans.setFlagUsed(true);
+					trans.setUserId(userId);
+					arrData.add(trans);
 
-				transDao.save(trans);
+					transDao.save(trans);
+				}
 			}
 
 			BigDecimal sum = BigDecimal.ZERO;
 			for (Transportation transportation : arrData) {
 				if (transportation.getTransportationPrice() != null) {
-					sum.add(transportation.getTransportationPrice());
+					sum = sum.add(new BigDecimal(transportation.getTransportationPrice()));
 				}
 			}
 
+			sum = sum.multiply(BigDecimal.valueOf(duration));
 			InvoiceResponse response = new InvoiceResponse();
 			response.setTransArr(arrData);
 			response.setPriceSum(sum);
@@ -129,8 +132,10 @@ public class TransportationService {
 			Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
 			Optional<User> usrOpt = usrDao.findById(userId);
 			if (tranCtgOpt.isPresent()) {
-				emailServ.kirimTagihan(itrOpt.get(), usrOpt.get(),
-						tranCtgOpt.get().getTransCategoryName(), num, startDate, duration, sum);
+				emailServ.kirimTagihan(itrOpt.get(), usrOpt.get(), tranCtgOpt.get().getTransCategoryName(), num,
+						startDate, duration, sum);
+				emailServ.kirimKeAdmin(itrOpt.get(), usrOpt.get(), tranCtgOpt.get().getTransCategoryName(), num,
+						startDate, duration, sum);
 			}
 
 			return sum;
@@ -143,7 +148,7 @@ public class TransportationService {
 		List<Transportation> listTrans = transDao.findByItr("ITR" + key.substring(24, 27));
 		boolean flag = false;
 		for (Transportation transportation : listTrans) {
-			if(("USR" + key.substring(27, 30)).equals(transportation.getUserId())) {
+			if (("USR" + key.substring(27, 30)).equals(transportation.getUserId())) {
 				flag = true;
 				transportation.setItineraryId("");
 				transportation.setStartDate(null);
@@ -154,7 +159,7 @@ public class TransportationService {
 				transDao.save(transportation);
 			}
 		}
-		if(flag) {
+		if (flag) {
 			return "Data Deleted";
 		}
 		return ResponseEntity.badRequest().body("Check Param");
@@ -186,17 +191,17 @@ public class TransportationService {
 		return "";
 	}
 
-	public Object sendinvoice(JsonNode jsonNode) throws IOException, DocumentException {
-		String itineraryId = jsonNode.get("itineraryId").asText();
-		String userId = jsonNode.get("userId").asText();
+	public Object sendinvoice(String key) throws IOException, DocumentException {
+		String itineraryId = "ITR" + key.substring(24, 27);
+		String userId = "USR" + key.substring(27, 30);
 		List<Transportation> listTrans = transDao.findByItr(itineraryId);
-		ArrayList<Transportation> arrTrans = new ArrayList<Transportation>(); 
+		ArrayList<Transportation> arrTrans = new ArrayList<Transportation>();
 		for (Transportation transportation : listTrans) {
-			if(userId.equals(transportation.getUserId())) {
+			if (userId.equals(transportation.getUserId())) {
 				arrTrans.add(transportation);
 			}
 		}
-		
+
 		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
 		Optional<User> usrOpt = usrDao.findById(userId);
 		Optional<TransportationCategory> tranCtg = transCatgDao.findById(arrTrans.get(0).getTransCategoryId());
@@ -207,18 +212,27 @@ public class TransportationService {
 		sb.append("Jenis Kendaraan: " + tranCtg.get().getTransCategoryName() + "\n");
 		sb.append("Jumlah Kendaraan: " + arrTrans.size() + " Unit\n");
 		sb.append("Tanggal Pemesanan: " + DataHelper.dateToPrettyString(arrTrans.get(0).getStartDate()) + "\n");
-		sb.append("Durasi Pemesanan: " + ChronoUnit.DAYS.between(arrTrans.get(0).getStartDate(), arrTrans.get(0).getEndDate()) + " Hari\n");
-		
+		sb.append("Durasi Pemesanan: "
+				+ ChronoUnit.DAYS.between(arrTrans.get(0).getStartDate(), arrTrans.get(0).getEndDate()) + " Hari\n");
+
 		BigDecimal sum = BigDecimal.ZERO;
 		for (Transportation transportation : arrTrans) {
 			if (transportation.getTransportationPrice() != null) {
-				sum.add(transportation.getTransportationPrice());
+				sum = sum.add(new BigDecimal(transportation.getTransportationPrice()));
 			}
 		}
+
+		sum = sum.multiply(BigDecimal
+				.valueOf(ChronoUnit.DAYS.between(arrTrans.get(0).getStartDate(), arrTrans.get(0).getEndDate())));
 		sb.append("Jumlah yang Telah dibayarkan: Rp." + sum.toEngineeringString() + "\n\n");
-		//Detail Kendaraan
-		
-		//Generate PDF
+		sb.append("Detail Kendaraan: \n");
+		for (int i = 1; i <= arrTrans.size(); i++) {
+			Transportation data = arrTrans.get(i - 1);
+			sb.append(i + ". Nama Kendaraan: " + data.getTransportationName());
+			sb.append("\n    Nomor Telefon Pengemudi: " + data.getTransportationPhone() + "\n");
+		}
+
+		// Generate PDF
 		File file = File.createTempFile("Invoice", ".pdf");
 		Document document = new Document();
 		PdfWriter.getInstance(document, new FileOutputStream(file));
@@ -241,8 +255,8 @@ public class TransportationService {
 
 		chunk = new Chunk(sb.toString(), font);
 		document.add(chunk);
-		
-		chunk = new Chunk("Paid!", font);
+
+		chunk = new Chunk("\n\nPaid!", font);
 		phrase = new Phrase();
 		phrase.add(chunk);
 		para = new Paragraph();
@@ -250,9 +264,10 @@ public class TransportationService {
 		para.setAlignment(Element.ALIGN_CENTER);
 		document.add(para);
 		document.close();
-		
-		//Send File
-		//https://netcorecloud.com/tutorials/send-email-in-java-using-gmail-smtp/
+
+		// Send File
+		emailServ.kirimInvoice(file, usrOpt.get());
+		return null;
 	}
 
 }

@@ -1,5 +1,7 @@
 package liburind.project.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
@@ -7,11 +9,14 @@ import java.util.Properties;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -43,8 +48,7 @@ public class EmailService {
 				return new PasswordAuthentication(from, "vdcbwhkwoshaduhf");
 			}
 		});
-
-		session.setDebug(true);
+//		session.setDebug(true);
 
 		try {
 			MimeMessage message = new MimeMessage(session);
@@ -115,7 +119,7 @@ public class EmailService {
 		try {
 			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
-			message.setSubject("Link Undangan Itinerary LiburIND");
+			message.setSubject("Tagihan Pembayaran Kendaraan LiburIND");
 
 			StringBuilder sb = new StringBuilder();
 			sb.append("Detail Pesanan: \n");
@@ -139,6 +143,69 @@ public class EmailService {
 					+ "\n\nKlik Link Berikut untuk Membatalkan Pesanan\nhttps://liburind.herokuapp.com/transportation/endbook?key="
 					+ key);
 
+			System.out.println("sending...");
+			Transport.send(message);
+			System.out.println("Sent message successfully....");
+		} catch (MessagingException mex) {
+			mex.printStackTrace();
+		}
+	}
+	
+	public void kirimKeAdmin(Itinerary itinerary, User user, String transCategoryName, Integer num, LocalDate startDate,
+			Integer duration, BigDecimal sum) {
+		try {
+			MimeMessage message = this.generateMessage();
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress("liburind.adm1n@gmail.com"));
+			message.setSubject("Link Konfirmasi Pembayaran");
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("Detail Pesanan: \n");
+			sb.append("Nama Itinerary: " + itinerary.getItineraryName() + "\n");
+			sb.append("Nama Pemesan: " + user.getUserName() + "\n");
+			sb.append("Jenis Kendaraan: " + transCategoryName + "\n");
+			sb.append("Jumlah Kendaraan: " + num + " Unit\n");
+			sb.append("Tanggal Pemesanan: " + DataHelper.dateToPrettyString(startDate) + "\n");
+			sb.append("Durasi Pemesanan: " + duration + " Hari\n");
+			sb.append("Jumlah yang Harus dibayarkan: Rp." + sum.toEngineeringString() + "\n\n");
+
+			String key = DataHelper.getAlphaNumericString(24) + itinerary.getItineraryId().substring(3, 6)
+					+ user.getUserId().substring(3, 6);
+			user.setKey(key);
+			usrDao.save(user);
+
+			message.setText(sb.toString()
+					+ "\n\nKlik Link Berikut untuk Konfirmasi Pesanan\nhttps://liburind.herokuapp.com/transportation/sendinvoice?key="
+					+ key + "\nKlik Link Berikut Menyelesaikan Pesanan\nhttps://liburind.herokuapp.com/transportation/endbook?key="
+					+ key);
+
+			System.out.println("sending...");
+			Transport.send(message);
+			System.out.println("Sent message successfully....");
+		} catch (MessagingException mex) {
+			mex.printStackTrace();
+		}
+	}
+
+	public void kirimInvoice(File file, User user) {
+		try {
+			MimeMessage message = this.generateMessage();
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
+			message.setSubject("Nota Pembayaran LiburIND");
+
+			Multipart multipart = new MimeMultipart();
+            MimeBodyPart attachmentPart = new MimeBodyPart();
+            MimeBodyPart textPart = new MimeBodyPart();
+
+            try {
+                attachmentPart.attachFile(file);
+                textPart.setText("Berikut kami Lampirkan Nota pembayaran beserta detail Kendaraan\nTerima kasih :)");
+                multipart.addBodyPart(textPart);
+                multipart.addBodyPart(attachmentPart);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            message.setContent(multipart);
 			System.out.println("sending...");
 			Transport.send(message);
 			System.out.println("Sent message successfully....");

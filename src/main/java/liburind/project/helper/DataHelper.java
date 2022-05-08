@@ -24,7 +24,7 @@ public class DataHelper {
 		String format = "yyyyMMddHHmmss";
 		try {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-			LocalDateTime date = LocalDateTime.parse(str, formatter);
+			LocalDateTime date = LocalDateTime.parse(str.replaceAll("-", ""), formatter);
 			return date;
 		} catch (Exception e) {
 			LocalDateTime date = LocalDateTime.now();
@@ -36,7 +36,7 @@ public class DataHelper {
 		String format = "yyyyMMdd";
 		try {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-			LocalDate date = LocalDate.parse(str, formatter);
+			LocalDate date = LocalDate.parse(str.replaceAll("-", ""), formatter);
 			return date;
 		} catch (Exception e) {
 			LocalDate date = LocalDate.now();

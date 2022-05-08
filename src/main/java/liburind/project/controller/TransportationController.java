@@ -63,7 +63,6 @@ public class TransportationController {
 	
 	@RequestMapping(value = { "/endbook" }, method = RequestMethod.GET)
 	public ResponseEntity<?> endbook(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
-
 		try {
 			return ResponseEntity.ok().body(transServ.endbook(key));
 		} catch (Exception e) {
@@ -87,15 +86,10 @@ public class TransportationController {
 		}
 	}
 
-	@RequestMapping(value = {
-			"/sendinvoice" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> sendinvoice(@RequestBody String json) throws IOException {
+	@RequestMapping(value = { "/sendinvoice" }, method = RequestMethod.GET)
+	public ResponseEntity<?> sendinvoice(@RequestParam String key) throws IOException {
 		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			return ResponseEntity.ok().body(transServ.sendinvoice(jsonNode));
+			return ResponseEntity.ok().body(transServ.sendinvoice(key));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
