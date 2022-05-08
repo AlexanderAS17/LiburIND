@@ -289,15 +289,17 @@ public class ItineraryService {
 		}
 
 		for (Itinerary itinerary : arrItr) {
-			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
-			LocalDate date = itinerary.getStartDate();
-			for (DestinationSeq destinationSeq : listSeq) {
-				if (destinationSeq.getSeqDate().isAfter(date)) {
-					date = destinationSeq.getSeqDate();
+			if("".equals(itinerary.getItineraryUserId())) {
+				List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+				LocalDate date = itinerary.getStartDate();
+				for (DestinationSeq destinationSeq : listSeq) {
+					if (destinationSeq.getSeqDate().isAfter(date)) {
+						date = destinationSeq.getSeqDate();
+					}
 				}
+				itinerary.setEndDate(date);
+				listItr.add(itinerary);
 			}
-			itinerary.setEndDate(date);
-			listItr.add(itinerary);
 		}
 
 		return listItr;
@@ -368,6 +370,9 @@ public class ItineraryService {
 		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
 		if (itrOpt.isPresent()) {
 			Itinerary itr = itrOpt.get();
+			itr.setPublicFlag(true);
+			itineraryDao.save(itr);
+			
 			String id = "";
 			Optional<TableCount> tblCount = tableCountDao.findById("Itinerary");
 			if (tblCount.isPresent()) {

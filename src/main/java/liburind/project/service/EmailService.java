@@ -130,7 +130,7 @@ public class EmailService {
 			sb.append("Tanggal Pemesanan: " + DataHelper.dateToPrettyString(startDate) + "\n");
 			sb.append("Durasi Pemesanan: " + duration + " Hari\n");
 			sb.append("Jumlah yang Harus dibayarkan: Rp." + sum.toEngineeringString() + "\n\n");
-			sb.append("Silahkan kirimkan bukti pemmbayaran ke email berikut\n");
+			sb.append("Silahkan kirimkan bukti pembayaran ke email berikut\n");
 			sb.append("liburind.adm1n@gmail.com");
 			sb.append("\nPembayaran paling lambat dilakukan 12 jam setelah email ini dikirimkan\n");
 
@@ -198,7 +198,7 @@ public class EmailService {
 
             try {
                 attachmentPart.attachFile(file);
-                textPart.setText("Berikut kami Lampirkan Nota pembayaran beserta detail Kendaraan\nTerima kasih :)");
+                textPart.setText("Berikut kami Lampirkan Nota pembayaran beserta detail Kendaraan\nTerima kasih :)\n\nUntuk Informasi lebih lanjut silahkan hubungi 081398863986 / 081272452265");
                 multipart.addBodyPart(textPart);
                 multipart.addBodyPart(attachmentPart);
             } catch (IOException e) {

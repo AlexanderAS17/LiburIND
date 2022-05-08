@@ -61,13 +61,23 @@ public class UserService {
 				return ResponseEntity.badRequest().body("Check Email");
 			}
 			user.setUserEmail(email);
-			
-			String regexPassword = "[A-Z]";
-			Pattern patternPassword = Pattern.compile(regexPassword);
-			Matcher matcherPassword = patternPassword.matcher(password);
-			if(!matcherPassword.matches()) {
-				
+
+			Pattern UpperCasePatten = Pattern.compile("[A-Z ]");
+		    Pattern lowerCasePatten = Pattern.compile("[a-z ]");
+		    Pattern digitCasePatten = Pattern.compile("[0-9 ]");
+			if (password.length() < 8) {
+				return ResponseEntity.badRequest().body("Password lenght must have alleast 8 character!!");
 			}
+			if (!UpperCasePatten.matcher(password).find()) {
+				return ResponseEntity.badRequest().body("Password must have atleast one uppercase character!!");
+			}
+			if (!lowerCasePatten.matcher(password).find()) {
+				return ResponseEntity.badRequest().body("Password must have atleast one lowercase character!!");
+			}
+			if (!digitCasePatten.matcher(password).find()) {
+				return ResponseEntity.badRequest().body("Password must have atleast one digit character!!");
+			}
+
 			user.setUserPassword(this.hashPassword(password));
 			user.setRoleId("roleUser");
 			user.setFlagActive(false);

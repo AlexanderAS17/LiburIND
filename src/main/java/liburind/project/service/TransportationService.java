@@ -256,7 +256,7 @@ public class TransportationService {
 		chunk = new Chunk(sb.toString(), font);
 		document.add(chunk);
 
-		chunk = new Chunk("\n\nPaid!", font);
+		chunk = new Chunk("\n\nLunas!", font);
 		phrase = new Phrase();
 		phrase.add(chunk);
 		para = new Paragraph();
