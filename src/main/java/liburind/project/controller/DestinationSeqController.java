@@ -105,4 +105,34 @@ public class DestinationSeqController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
 		}
 	}
+
+	@RequestMapping(value = {
+			"/optimize" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> optimize(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(destSeqServ.optimize(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+		}
+	}
+
+//	@RequestMapping(value = {
+//			"/updatesemua" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+//	@ResponseBody
+//	public ResponseEntity<?> updatesemua(@RequestBody String json) throws IOException {
+//		try {
+//			ObjectMapper objectMapper = new ObjectMapper();
+//			JsonNode jsonNode = objectMapper.readTree(json);
+//
+//			return ResponseEntity.ok().body(destSeqServ.updatesemua(jsonNode));
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+//		}
+//	}
 }

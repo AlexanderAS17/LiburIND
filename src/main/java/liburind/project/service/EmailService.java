@@ -1,5 +1,7 @@
 package liburind.project.service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import liburind.project.dao.UserRepository;
 import liburind.project.helper.DataHelper;
+import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 
 @Service
@@ -56,13 +59,13 @@ public class EmailService {
 		try {
 			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
-			message.setSubject("This is the Subject Line!");
+			message.setSubject("Aktivasi Akun LiburIND");
 
 			String key = DataHelper.getAlphaNumericString(30) + user.getUserId().substring(3, 6);
 			user.setKey(key);
 			usrDao.save(user);
 
-			message.setText("Click Link Below!\nhttps://liburind.herokuapp.com/user/active?key=" + key);
+			message.setText("Klik Link Berikut!\nhttps://liburind.herokuapp.com/user/active?key=" + key);
 
 			System.out.println("sending...");
 			Transport.send(message);
@@ -76,14 +79,14 @@ public class EmailService {
 		try {
 			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
-			message.setSubject("This is the Subject Line!");
+			message.setSubject("Link Undangan Itinerary LiburIND");
 
 			String key = DataHelper.getAlphaNumericString(24) + itineraryId.substring(3, 6)
 					+ user.getUserId().substring(3, 6);
 			user.setKey(key);
 			usrDao.save(user);
 
-			message.setText("Click Link to Join!\nhttps://liburind.herokuapp.com/itinerary/join?key=" + key);
+			message.setText("Klik Link untuk Bergabung!\nhttps://liburind.herokuapp.com/itinerary/join?key=" + key);
 
 			System.out.println("sending...");
 			Transport.send(message);
@@ -105,6 +108,43 @@ public class EmailService {
 			}
 		}
 		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public void kirimTagihan(Itinerary itinerary, User user, String transCategoryName, Integer num, LocalDate startDate,
+			Integer duration, BigDecimal sum) {
+		try {
+			MimeMessage message = this.generateMessage();
+			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
+			message.setSubject("Link Undangan Itinerary LiburIND");
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("Detail Pesanan: \n");
+			sb.append("Nama Itinerary: " + itinerary.getItineraryName() + "\n");
+			sb.append("Nama Pemesan: " + user.getUserName() + "\n");
+			sb.append("Jenis Kendaraan: " + transCategoryName + "\n");
+			sb.append("Jumlah Kendaraan: " + num + " Unit\n");
+			sb.append("Tanggal Pemesanan: " + DataHelper.dateToPrettyString(startDate) + "\n");
+			sb.append("Durasi Pemesanan: " + duration + " Hari\n");
+			sb.append("Jumlah yang Harus dibayarkan: Rp." + sum.toEngineeringString() + "\n\n");
+			sb.append("Silahkan kirimkan bukti pemmbayaran ke email berikut\n");
+			sb.append("liburind.adm1n@gmail.com");
+			sb.append("\nPembayaran paling lambat dilakukan 12 jam setelah email ini dikirimkan\n");
+
+			String key = DataHelper.getAlphaNumericString(24) + itinerary.getItineraryId().substring(3, 6)
+					+ user.getUserId().substring(3, 6);
+			user.setKey(key);
+			usrDao.save(user);
+
+			message.setText(sb.toString()
+					+ "\n\nKlik Link Berikut untuk Membatalkan Pesanan\nhttps://liburind.herokuapp.com/transportation/endbook?key="
+					+ key);
+
+			System.out.println("sending...");
+			Transport.send(message);
+			System.out.println("Sent message successfully....");
+		} catch (MessagingException mex) {
+			mex.printStackTrace();
+		}
 	}
 
 }

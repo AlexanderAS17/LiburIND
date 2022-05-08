@@ -9,10 +9,18 @@ import java.util.Optional;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import liburind.project.dao.DestinationRepository;
 import liburind.project.dao.DestinationSeqRepository;
@@ -20,7 +28,6 @@ import liburind.project.dao.ItineraryRepository;
 import liburind.project.dao.TableCountRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.DestinationSeq;
-import liburind.project.model.DestinationSeqKey;
 import liburind.project.model.Destinations;
 import liburind.project.model.Itinerary;
 import liburind.project.model.ItineraryDestination;
@@ -38,7 +45,7 @@ public class DestinationSeqService {
 
 	@Autowired
 	ItineraryRepository itrDao;
-	
+
 	@Autowired
 	TableCountRepository tblDao;
 
@@ -65,8 +72,7 @@ public class DestinationSeqService {
 		ArrayList<ItineraryResponse> response = new ArrayList<ItineraryResponse>();
 		DestinationSeq prevData = new DestinationSeq();
 		for (DestinationSeq destinationSeq : listDestSeq) {
-			if (arrData.size() > 0
-					&& !prevData.getSeqDate().isEqual(destinationSeq.getSeqDate())) {
+			if (arrData.size() > 0 && !prevData.getSeqDate().isEqual(destinationSeq.getSeqDate())) {
 				splited.add(arrData);
 				arrData = new ArrayList<DestinationSeq>();
 			}
@@ -86,6 +92,10 @@ public class DestinationSeqService {
 				itrDes.setSeqId(destinationSeq.getSeqId());
 				itrDes.setDestinationId(destinationSeq.getDestinationId());
 				itrDes.setSeqDate(destinationSeq.getSeqDate());
+				String duration = destinationSeq.getDuration() != null ? destinationSeq.getDuration() : "";
+				String distance = destinationSeq.getDistance() != null ? destinationSeq.getDistance() : "";
+				itrDes.setDuration(duration);
+				itrDes.setDistance(distance);
 				Optional<Destinations> desOpt = desDao.findById(itrDes.getDestinationId());
 				if (desOpt.isPresent()) {
 					itrDes = this.toModel(itrDes, desOpt.get());
@@ -122,7 +132,6 @@ public class DestinationSeqService {
 	public Object save(JsonNode jsonNode) {
 		List<DestinationSeq> arrDest = new ArrayList<DestinationSeq>();
 		String itineraryId = jsonNode.get("itineraryId").asText();
-		LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", ""));
 		BigDecimal seqPrice = DataHelper.toBigDecimal(jsonNode.get("price").asText());
 		int count = 1;
 		this.delete(itineraryId, jsonNode.get("date").asText().replaceAll("-", ""));
@@ -133,9 +142,8 @@ public class DestinationSeqService {
 		if (jsonNode.has("data") && jsonNode.get("data").isArray()) {
 			for (JsonNode objNode : jsonNode.get("data")) {
 				DestinationSeq destinationSeq = new DestinationSeq();
-				String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText().replaceAll("-", "") + " - "
-						+ count++;
-				DestinationSeqKey seqKey = new DestinationSeqKey(seqId, seqDate);
+				String seqId = jsonNode.get("itineraryId").asText() + " - "
+						+ jsonNode.get("date").asText().replaceAll("-", "") + " - " + count++;
 
 				destinationSeq.setSeqId(seqId);
 				destinationSeq.setItineraryId(itineraryId);
@@ -183,16 +191,17 @@ public class DestinationSeqService {
 
 	@Transactional
 	public Object saveone(JsonNode jsonNode) {
-		if(jsonNode.has("itineraryId")) {
+		if (jsonNode.has("itineraryId")) {
 			Optional<Itinerary> itrOpt = itrDao.findById(jsonNode.get("itineraryId").asText());
 			if (itrOpt.isPresent()) {
 				DestinationSeq destinationSeq = new DestinationSeq();
 				Destinations destination = new Destinations();
-				String destinationPlaceId = jsonNode.has("destinationPlaceId") ? jsonNode.get("destinationPlaceId").asText()
+				String destinationPlaceId = jsonNode.has("destinationPlaceId")
+						? jsonNode.get("destinationPlaceId").asText()
 						: "NoData";
-				if(!"NoData".equals(destinationPlaceId)) {
+				if (!"NoData".equals(destinationPlaceId)) {
 					Optional<Destinations> desOpt = desDao.findByPlaceId(destinationPlaceId);
-					if(desOpt.isPresent()) {
+					if (desOpt.isPresent()) {
 						destination = desOpt.get();
 					} else {
 						destination = Destinations.mapJson(jsonNode);
@@ -208,23 +217,27 @@ public class DestinationSeqService {
 						destination.setDestinationId(id);
 						desDao.save(destination);
 					}
-					
-					Integer count = 1;
-					LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-",""));
+
+					Integer terbesar = 1;
+					LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", ""));
 					List<DestinationSeq> listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
-					if(listDes.size() > 0) {
+					if (listDes.size() > 0) {
 						for (DestinationSeq desSeq : listDes) {
-							if(seqDate.equals(desSeq.getSeqDate())) {
-								if("".equals(desSeq.getDestinationId())) {
+							if (seqDate.equals(desSeq.getSeqDate())) {
+								if ("".equals(desSeq.getDestinationId())) {
 									desSeqDao.delete(desSeq);
 								} else {
-									count++;
+									if (terbesar < Integer.valueOf(desSeq.getSeqId().substring(20, 21))) {
+										terbesar = Integer.valueOf(desSeq.getSeqId().substring(20, 21));
+									}
 								}
 							}
 						}
 					}
-					
-					String seqId = jsonNode.get("itineraryId").asText() + " - " + jsonNode.get("date").asText().replaceAll("-","") + " - " + count++;
+
+					terbesar += 1;
+					String seqId = jsonNode.get("itineraryId").asText() + " - "
+							+ jsonNode.get("date").asText().replaceAll("-", "") + " - " + terbesar;
 					destinationSeq.setSeqId(seqId);
 					destinationSeq.setItineraryId(jsonNode.get("itineraryId").asText());
 					destinationSeq.setSeqDate(DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", "")));
@@ -232,23 +245,250 @@ public class DestinationSeqService {
 					destinationSeq.setDestinationId(destination.getDestinationId());
 					destinationSeq.setDestination(destination);
 					desSeqDao.save(destinationSeq);
-					
-					listDes.add(destinationSeq);
+
+					//Get Distance and Duration
+					if (terbesar > 1) {
+						String prevSeqId = jsonNode.get("itineraryId").asText() + " - "
+								+ jsonNode.get("date").asText().replaceAll("-", "") + " - " + (terbesar-1);
+						Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(prevSeqId);
+						if(desSeqOpt.isPresent()) {
+							Optional<Destinations> destStart = desDao.findById(desSeqOpt.get().getDestinationId());
+							Optional<Destinations> destEnd = desDao.findById(destinationSeq.getDestinationId());
+							DestinationSeq desSeq = desSeqOpt.get();
+							desSeq = DataHelper.getDistanceandDuration(destStart.get().getDestinationPlaceId(), destEnd.get().getDestinationPlaceId(), desSeq);
+							desSeqDao.save(desSeq);
+						}
+					}
+
+					listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
 					DestinationSeq.sortByDate(listDes);
-					
+
 					ArrayList<ItineraryResponse> arrData = this.splitData(listDes);
 					return arrData;
 				}
 			}
-		} 
+		}
 		return ResponseEntity.badRequest().body("Check Param");
 	}
 
 	public void deleteone(String seqId) {
 		Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(seqId);
-		if(desSeqOpt.isPresent()) {
+		if (desSeqOpt.isPresent()) {
 			desSeqDao.delete(desSeqOpt.get());
 		}
 	}
+
+	@Transactional
+	public Object optimize(JsonNode jsonNode) throws JsonMappingException, JsonProcessingException {
+		String itineraryId = jsonNode.get("itineraryId").asText();
+		LocalDate date = DataHelper.toDate(jsonNode.get("date").asText());
+		String startDest = jsonNode.get("start").asText();
+		String endDest = jsonNode.get("end").asText();
+		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
+		if (itrOpt.isPresent()) {
+			List<DestinationSeq> listDes = desSeqDao.findByItrId(itineraryId);
+			ArrayList<DestinationSeq> arrDes = new ArrayList<DestinationSeq>();
+			for (DestinationSeq destinationSeq : listDes) {
+				if (date.equals(destinationSeq.getSeqDate())) {
+					arrDes.add(destinationSeq);
+				}
+			}
+
+			String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
+			String start = "place_id:" + startDest;
+			String end = "&destination=place_id:" + endDest;
+			String optimize = "&waypoints=optimize:true";
+			String destinasi = "";
+
+			for (DestinationSeq data : arrDes) {
+				Optional<Destinations> desOptional = desDao.findById(data.getDestinationId());
+				if (desOptional.isPresent()) {
+					if (!startDest.equals(desOptional.get().getDestinationPlaceId())
+							&& !endDest.equals(desOptional.get().getDestinationPlaceId())) {
+						destinasi += "|place_id:" + desOptional.get().getDestinationPlaceId();
+					}
+				}
+			}
+
+			String key = "&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
+			String finalUrl = googleApi + start + end + optimize + destinasi + key;
+//			String finalUrl = "https://maps.googleapis.com/maps/api/directions/json?origin=place_id:ChIJP7Mmxcc1t2oRQMaOYlQ2AwQ&destination=McLaren+Vale,SA"
+//					+ "&waypoints=optimize:true|Barossa+Valley,SA|place_id:ChIJPTJwAtwIy2oRcO2OYlQ2AwQ&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
+			System.out.println(finalUrl);
+			ResponseEntity<String> respEntityRes = null;
+			HttpHeaders headers = new HttpHeaders();
+			HttpEntity<String> entity = new HttpEntity<String>(headers);
+			RestTemplate restTemplate = new RestTemplate();
+
+			try {
+				respEntityRes = restTemplate.exchange(finalUrl, HttpMethod.GET, entity, String.class);
+
+				ObjectMapper objectMapper = new ObjectMapper();
+				JsonNode nodeResp = objectMapper.readTree(respEntityRes.getBody());
+
+				ArrayList<String> desSeqArr = new ArrayList<String>();
+				if (nodeResp.get("geocoded_waypoints").isArray()) {
+					for (JsonNode objNode : nodeResp.get("geocoded_waypoints")) {
+						desSeqArr.add(objNode.get("place_id").asText());
+					}
+				}
+
+				ArrayList<String> arrKeterangan = new ArrayList<String>();
+				if (nodeResp.get("routes").isArray()) {
+					for (JsonNode objNode : nodeResp.get("routes")) {
+						if (objNode.get("legs").isArray()) {
+							for (JsonNode objNode2 : objNode.get("legs")) {
+								arrKeterangan.add(objNode2.get("distance").get("text").asText());
+								arrKeterangan.add(objNode2.get("duration").get("text").asText());
+							}
+						}
+					}
+				}
+
+				for (int i = 0; i < arrDes.size(); i++) {
+					Optional<Destinations> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
+					if (desOpt.isPresent()) {
+						DestinationSeq desSeq = arrDes.get(i);
+						desSeq.setDestinationId(desOpt.get().getDestinationId());
+						try {
+							desSeq.setDistance(arrKeterangan.get(i * 2));
+							desSeq.setDuration(arrKeterangan.get(i * 2 + 1));
+						} catch (Exception e) {
+							desSeq.setDistance("");
+							desSeq.setDuration("");
+						}
+						arrDes.set(i, desSeq);
+						desSeqDao.save(arrDes.get(i));
+					}
+				}
+
+				// Get Lagi
+				List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+				for (DestinationSeq destinationSeq : listDestSeq) {
+					Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+					if (desOpt.isPresent()) {
+						destinationSeq.setDestination(desOpt.get());
+					} else {
+						destinationSeq.setDestination(null);
+					}
+				}
+				if (listDestSeq.size() > 0) {
+					ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
+					DestinationSeq.sortByDate(list);
+					return this.splitData(list);
+				}
+
+			} catch (HttpStatusCodeException e) {
+				System.out.println(e.getCause());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+//	public Object updatesemua(JsonNode jsonNode) {
+//		List<Itinerary> listItr = itrDao.findAll();
+//		for (Itinerary itinerary : listItr) {
+//			List<DestinationSeq> listDes = desSeqDao.findByItrId(itinerary.getItineraryId());
+//			DestinationSeq.sortByDate(listDes);
+//			ArrayList<ArrayList<DestinationSeq>> splited = new ArrayList<ArrayList<DestinationSeq>>();
+//			ArrayList<DestinationSeq> arrData = new ArrayList<DestinationSeq>();
+//
+//			DestinationSeq prevData = new DestinationSeq();
+//			for (DestinationSeq destinationSeq : listDes) {
+//				if (arrData.size() > 0 && !prevData.getSeqDate().isEqual(destinationSeq.getSeqDate())) {
+//					splited.add(arrData);
+//					arrData = new ArrayList<DestinationSeq>();
+//				}
+//				arrData.add(destinationSeq);
+//				prevData = destinationSeq;
+//			}
+//			splited.add(arrData);
+//
+//			for (ArrayList<DestinationSeq> perDay : splited) {
+//				if (perDay.size() > 1) {
+//					String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
+//					Optional<Destinations> desOptionalStart = desDao.findById(perDay.get(0).getDestinationId());
+//					Optional<Destinations> desOptionalEnd = desDao
+//							.findById(perDay.get(perDay.size() - 1).getDestinationId());
+//					String start = "place_id:" + desOptionalStart.get().getDestinationPlaceId();
+//					String end = "&destination=place_id:" + desOptionalEnd.get().getDestinationPlaceId();
+//					String optimize = "&waypoints=optimize:false";
+//					String destinasi = "";
+//
+//					for (DestinationSeq data : perDay) {
+//						Optional<Destinations> desOptional = desDao.findById(data.getDestinationId());
+//						if (desOptional.isPresent()) {
+//							if (!desOptionalStart.get().getDestinationPlaceId().equals(desOptional.get().getDestinationPlaceId())
+//									&& !desOptionalEnd.get().getDestinationPlaceId().equals(desOptional.get().getDestinationPlaceId())) {
+//								destinasi += "|place_id:" + desOptional.get().getDestinationPlaceId();
+//							}
+//						}
+//					}
+//
+//					String key = "&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
+//					String finalUrl = googleApi + start + end + optimize + destinasi + key;
+////					String finalUrl = "https://maps.googleapis.com/maps/api/directions/json?origin=place_id:ChIJP7Mmxcc1t2oRQMaOYlQ2AwQ&destination=McLaren+Vale,SA"
+////							+ "&waypoints=optimize:true|Barossa+Valley,SA|place_id:ChIJPTJwAtwIy2oRcO2OYlQ2AwQ&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
+//					System.out.println(finalUrl);
+//					ResponseEntity<String> respEntityRes = null;
+//					HttpHeaders headers = new HttpHeaders();
+//					HttpEntity<String> entity = new HttpEntity<String>(headers);
+//					RestTemplate restTemplate = new RestTemplate();
+//
+//					try {
+//						respEntityRes = restTemplate.exchange(finalUrl, HttpMethod.GET, entity, String.class);
+//
+//						ObjectMapper objectMapper = new ObjectMapper();
+//						JsonNode nodeResp = objectMapper.readTree(respEntityRes.getBody());
+//
+//						ArrayList<String> desSeqArr = new ArrayList<String>();
+//						if (nodeResp.get("geocoded_waypoints").isArray()) {
+//							for (JsonNode objNode : nodeResp.get("geocoded_waypoints")) {
+//								desSeqArr.add(objNode.get("place_id").asText());
+//							}
+//						}
+//
+//						ArrayList<String> arrKeterangan = new ArrayList<String>();
+//						if (nodeResp.get("routes").isArray()) {
+//							for (JsonNode objNode : nodeResp.get("routes")) {
+//								if (objNode.get("legs").isArray()) {
+//									for (JsonNode objNode2 : objNode.get("legs")) {
+//										arrKeterangan.add(objNode2.get("distance").get("text").asText());
+//										arrKeterangan.add(objNode2.get("duration").get("text").asText());
+//									}
+//								}
+//							}
+//						}
+//
+//						ArrayList<DestinationSeq> arrDes = perDay;
+//						for (int i = 0; i < arrDes.size(); i++) {
+//							Optional<Destinations> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
+//							if (desOpt.isPresent()) {
+//								DestinationSeq desSeq = arrDes.get(i);
+//								desSeq.setDestinationId(desOpt.get().getDestinationId());
+//								try {
+//									desSeq.setDistance(arrKeterangan.get(i * 2));
+//									desSeq.setDuration(arrKeterangan.get(i * 2 + 1));
+//								} catch (Exception e) {
+//									desSeq.setDistance("");
+//									desSeq.setDuration("");
+//								}
+//								arrDes.set(i, desSeq);
+//								desSeqDao.save(arrDes.get(i));
+//							}
+//						}
+//
+//					} catch (HttpStatusCodeException e) {
+//						System.out.println(e.getCause());
+//					} catch (Exception e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			}
+//		}
+//		return "Oke";
+//	}
 
 }

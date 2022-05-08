@@ -40,8 +40,8 @@ public class CategoryController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Category());
 		}
 	}
-	
-	//Administrator
+
+	// Administrator
 	@RequestMapping(value = {
 			"/save" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
@@ -68,6 +68,21 @@ public class CategoryController {
 			String categoryId = jsonNode.get("categoryId").asText();
 
 			return ResponseEntity.ok().body(catgServ.delete(categoryId));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error");
+		}
+	}
+
+	@RequestMapping(value = {
+			"/updateindo" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> updateindo(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(catgServ.updateindo(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error");

@@ -2,7 +2,6 @@ package liburind.project.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,15 +21,19 @@ public class DestinationSeq {
 	private LocalDate seqDate;
 	private BigDecimal seqPrice;
 	private String destinationId;
+	private String duration;
+	private String distance;
 	
 	@Transient
 	private Destinations destination;
 
 	public static void sortByDate(ArrayList<DestinationSeq> list) {
+		list.sort((o1, o2) -> o1.getSeqId().compareTo(o2.getSeqId()));
 		list.sort((o1, o2) -> o1.getSeqDate().compareTo(o2.getSeqDate()));
 	}
 
 	public static void sortByDate(List<DestinationSeq> list) {
+		list.sort((o1, o2) -> o1.getSeqId().compareTo(o2.getSeqId()));
 		list.sort((o1, o2) -> o1.getSeqDate().compareTo(o2.getSeqDate()));
 	}
 }

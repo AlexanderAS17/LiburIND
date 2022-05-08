@@ -15,6 +15,7 @@ import liburind.project.dao.CategoryRepository;
 import liburind.project.dao.DestinationCategoryRepository;
 import liburind.project.dao.DestinationRepository;
 import liburind.project.dao.TableCountRepository;
+import liburind.project.helper.DataHelper;
 import liburind.project.model.Category;
 import liburind.project.model.DestinationCategory;
 import liburind.project.model.Destinations;
@@ -131,6 +132,7 @@ public class DestinationService {
 			List<DestinationCategory> listData = destCtgDao.findByDestination(destination.getDestinationId());
 
 			for (String key : destinations.getDestinationType()) {
+				key = DataHelper.translate(key);
 				Optional<Category> ctgOpt = ctgDao.findByName(key);
 				if (ctgOpt.isPresent()) {
 					mapCtg.put(ctgOpt.get().getCategoryId(), ctgOpt.get());
@@ -183,6 +185,7 @@ public class DestinationService {
 			}
 		} else {
 			for (String key : destination.getDestinationType()) {
+				key = DataHelper.translate(key);
 				Optional<Category> ctgOpt = ctgDao.findByName(key);
 				String catgString = "";
 				if (ctgOpt.isPresent()) {

@@ -27,5 +27,7 @@ public class ItineraryDestination {
 	private String destinationUrl;
 	private Integer destinationUsrJmlh;
 	private String destinationWebsite;
+	private String duration;
+	private String distance;
 	
 }

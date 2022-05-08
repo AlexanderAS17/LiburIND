@@ -98,21 +98,24 @@ public class UserController {
 
 	@RequestMapping(value = { "/edit" }, method = RequestMethod.POST)
 	public ResponseEntity<?> editProfile(@RequestBody String json)
-			throws JsonMappingException, JsonProcessingException {
+			throws JsonMappingException, JsonProcessingException, NoSuchAlgorithmException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 
 		String userId = jsonNode.get("userId").asText();
 		String name = jsonNode.get("name").asText();
 		String password = jsonNode.get("password").asText();
+		String newPassword = jsonNode.get("newPassword").asText();
 
 		Optional<User> userOpt = userDao.findById(userId);
 
 		if (userOpt.isPresent()) {
 			User user = userOpt.get();
 			user.setUserName(name);
-			user.setUserPassword(password);
-
+			if(!user.getUserPassword().equals(userServ.hashPassword(password))) {
+				return ResponseEntity.badRequest().body("Wrong Password");
+			} 
+			user.setUserPassword(userServ.hashPassword(newPassword));
 			userDao.save(user);
 
 			return ResponseEntity.ok(user);

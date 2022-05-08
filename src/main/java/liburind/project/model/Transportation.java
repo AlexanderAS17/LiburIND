@@ -19,6 +19,7 @@ public class Transportation {
 	private BigDecimal transportationPrice;
 	private String transCategoryId;
 	private String itineraryId;
+	private String userId;
 	private LocalDate startDate;
 	private LocalDate endDate;
 	private Boolean flagUsed;

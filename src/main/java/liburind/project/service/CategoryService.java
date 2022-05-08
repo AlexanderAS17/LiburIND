@@ -1,5 +1,6 @@
 package liburind.project.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import liburind.project.dao.CategoryRepository;
 import liburind.project.dao.TableCountRepository;
+import liburind.project.helper.DataHelper;
 import liburind.project.model.Category;
 import liburind.project.model.TableCount;
 
@@ -74,6 +76,15 @@ public class CategoryService {
 		} else {
 			return ResponseEntity.badRequest().body("Not Found");
 		}
+	}
+
+	public Object updateindo(JsonNode jsonNode) {
+		List<Category> listCtg = catgDao.findAll();
+		for (Category category : listCtg) {
+			category.setCategoryName(DataHelper.translate(category.getCategoryName()));
+			catgDao.save(category);
+		}
+		return null;
 	}
 
 }

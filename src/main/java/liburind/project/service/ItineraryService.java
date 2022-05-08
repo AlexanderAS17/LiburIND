@@ -104,10 +104,16 @@ public class ItineraryService {
 		}
 
 		Itinerary itinerary = new Itinerary();
-		Optional<TableCount> countOpt = tableCountDao.findById("Itinerary");
-		int count = countOpt.isPresent() ? countOpt.get().getCount() : 0;
-		tableCountDao.save(new TableCount("Itinerary", count + 1));
-		String id = String.format("ITR%03d", count + 1);
+		String id = "";
+		Optional<TableCount> tblCount = tableCountDao.findById("Itinerary");
+		if (tblCount.isPresent()) {
+			id = String.format("ITR%03d", tblCount.get().getCount() + 1);
+			tableCountDao.save(new TableCount("Itinerary", tblCount.get().getCount() + 1));
+		} else {
+			id = String.format("ITR%03d", 1);
+			tableCountDao.save(new TableCount("Itinerary", 1));
+		}
+
 		itinerary.setItineraryId(id);
 		itinerary.setItineraryName(name);
 		itinerary.setItineraryRiviewCount(0);
@@ -348,8 +354,7 @@ public class ItineraryService {
 		List<ItineraryUser> userList = itineraryUserDao.findAll();
 		for (ItineraryUser itineraryUser : userList) {
 			if (key.substring(24, 27).equals(itineraryUser.getIteneraryUserKey().getItineraryId().substring(3, 6))
-					&& key.substring(27, 30)
-							.equals(itineraryUser.getIteneraryUserKey().getUserId().substring(3, 6))) {
+					&& key.substring(27, 30).equals(itineraryUser.getIteneraryUserKey().getUserId().substring(3, 6))) {
 				itineraryUser.setActiveFlag(true);
 				itineraryUserDao.save(itineraryUser);
 				return "OKEEEE";
@@ -358,4 +363,75 @@ public class ItineraryService {
 		return ResponseEntity.badRequest().body("Invite Friend Deleted");
 	}
 
+	public Object publish(JsonNode jsonNode) {
+		String itineraryId = jsonNode.get("itineraryId").asText();
+
+		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
+		if (itrOpt.isPresent()) {
+			Itinerary itr = itrOpt.get();
+			String id = "";
+			Optional<TableCount> tblCount = tableCountDao.findById("Itinerary");
+			if (tblCount.isPresent()) {
+				id = String.format("ITR%03d", tblCount.get().getCount() + 1);
+				tableCountDao.save(new TableCount("Itinerary", tblCount.get().getCount() + 1));
+			} else {
+				id = String.format("ITR%03d", 1);
+				tableCountDao.save(new TableCount("Itinerary", 1));
+			}
+
+			itr.setItineraryId(id);
+			itr.setPublicFlag(true);
+			itr.setItineraryUserId("");
+			itineraryDao.save(itr);
+
+			List<DestinationSeq> listDest = desSeqDao.findByItrId(itineraryId);
+			for (DestinationSeq data : listDest) {
+				data.setSeqId("PUB" + data.getSeqId());
+				data.setItineraryId(id);
+				desSeqDao.save(data);
+			}
+
+			return "Data Published";
+		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public Object copy(JsonNode jsonNode) {
+		String itineraryId = jsonNode.get("itineraryId").asText();
+		String userId = jsonNode.get("userId").asText();
+		LocalDate date = DataHelper.toDate(jsonNode.get("date").asText());
+
+		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
+		if (itrOpt.isPresent()) {
+			Itinerary itr = itrOpt.get();
+			String id = "";
+			Optional<TableCount> tblCount = tableCountDao.findById("Itinerary");
+			if (tblCount.isPresent()) {
+				id = String.format("ITR%03d", tblCount.get().getCount() + 1);
+				tableCountDao.save(new TableCount("Itinerary", tblCount.get().getCount() + 1));
+			} else {
+				id = String.format("ITR%03d", 1);
+				tableCountDao.save(new TableCount("Itinerary", 1));
+			}
+
+			itr.setItineraryId(id);
+			itr.setPublicFlag(false);
+			itr.setItineraryUserId(userId);
+			itr.setStartDate(date);
+			itineraryDao.save(itr);
+
+			List<DestinationSeq> listDest = desSeqDao.findByItrId(itineraryId);
+			int incDate = 0;
+			for (DestinationSeq data : listDest) {
+				String key = data.getSeqId().replaceAll("PUB", "");
+				data.setSeqId(id + " - " + DataHelper.dateToString(date.plusDays(incDate)) + key.substring(17, key.length()));
+				data.setItineraryId(id);
+				desSeqDao.save(data);
+				incDate++;
+			}
+
+			return "Data Copied";
+		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
 }

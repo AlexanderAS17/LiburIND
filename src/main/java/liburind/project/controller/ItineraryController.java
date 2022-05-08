@@ -43,8 +43,8 @@ public class ItineraryController {
 			String name = jsonNode.get("name").asText();
 			boolean publicFlag = jsonNode.get("publicFlag").asBoolean();
 			String userId = jsonNode.get("userId").asText();
-			String startDate = jsonNode.get("startDate").asText();
-			String endDate = jsonNode.get("endDate").asText();
+			String startDate = jsonNode.get("startDate").asText().replaceAll("-", "");
+			String endDate = jsonNode.get("endDate").asText().replaceAll("-", "");
 			String detail = jsonNode.has("detail") ? jsonNode.get("detail").asText() : "";
 
 			return ResponseEntity.ok().body(itineraryServ.save(name, publicFlag, userId, startDate, endDate, detail));
@@ -96,7 +96,7 @@ public class ItineraryController {
 		}
 	}
 
-	//inviteFriend
+	// inviteFriend
 	@RequestMapping(value = { "/updateuser" }, method = RequestMethod.POST)
 	public ResponseEntity<?> updateUser(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -153,6 +153,30 @@ public class ItineraryController {
 		}
 	}
 
+	@RequestMapping(value = { "/publish" }, method = RequestMethod.POST)
+	public ResponseEntity<?> publish(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode = objectMapper.readTree(json);
+		
+		try {
+			return ResponseEntity.ok(itineraryServ.publish(jsonNode));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+		}
+	}
+	
+	@RequestMapping(value = { "/copy" }, method = RequestMethod.POST)
+	public ResponseEntity<?> copy(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode jsonNode = objectMapper.readTree(json);
+		
+		try {
+			return ResponseEntity.ok(itineraryServ.copy(jsonNode));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
+		}
+	}
+
 	@RequestMapping(value = { "/delete" }, method = RequestMethod.POST)
 	public ResponseEntity<?> delete(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -185,7 +209,7 @@ public class ItineraryController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destinations>());
 		}
 	}
-	
+
 	@RequestMapping(value = { "/join" }, method = RequestMethod.GET)
 	public ResponseEntity<?> join(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
 

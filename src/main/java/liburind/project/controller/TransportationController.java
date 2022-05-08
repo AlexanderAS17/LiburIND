@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -57,19 +60,14 @@ public class TransportationController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Transportation>());
 		}
 	}
+	
+	@RequestMapping(value = { "/endbook" }, method = RequestMethod.GET)
+	public ResponseEntity<?> endbook(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
 
-	@RequestMapping(value = {
-			"/endbook" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> endbook(@RequestBody String json) throws IOException {
 		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			return ResponseEntity.ok().body(transServ.endbook(jsonNode));
+			return ResponseEntity.ok().body(transServ.endbook(key));
 		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Transportation>());
+			return ResponseEntity.badRequest().body("Check Param");
 		}
 	}
 
@@ -82,6 +80,22 @@ public class TransportationController {
 			JsonNode jsonNode = objectMapper.readTree(json);
 
 			return ResponseEntity.ok().body(transServ.list(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ArrayList<TransportationCategory>());
+		}
+	}
+
+	@RequestMapping(value = {
+			"/sendinvoice" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> sendinvoice(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(transServ.sendinvoice(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
