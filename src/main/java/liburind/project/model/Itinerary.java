@@ -26,6 +26,7 @@ public class Itinerary {
 	private LocalDate startDate;
 	private String detail;
 	private LocalDateTime itineraryRecordedTime;
+	private String publisher;
 	
 	@Transient
 	@JsonIgnore

@@ -2,7 +2,9 @@ package liburind.project.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -108,6 +110,96 @@ public class DestinationSeqService {
 		return response;
 	}
 
+	private void optimizeDay(ArrayList<DestinationSeq> perDay) {
+		if (perDay.size() > 2) {
+			String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
+			Optional<Destinations> desOptionalStart = desDao.findById(perDay.get(0).getDestinationId());
+			Optional<Destinations> desOptionalEnd = desDao.findById(perDay.get(perDay.size() - 1).getDestinationId());
+			String start = "place_id:" + desOptionalStart.get().getDestinationPlaceId();
+			String end = "&destination=place_id:" + desOptionalEnd.get().getDestinationPlaceId();
+			String optimize = "&waypoints=optimize:false";
+			String destinasi = "";
+
+			for (DestinationSeq data : perDay) {
+				Optional<Destinations> desOptional = desDao.findById(data.getDestinationId());
+				if (desOptional.isPresent()) {
+					if (!desOptionalStart.get().getDestinationPlaceId()
+							.equals(desOptional.get().getDestinationPlaceId())
+							&& !desOptionalEnd.get().getDestinationPlaceId()
+									.equals(desOptional.get().getDestinationPlaceId())) {
+						destinasi += "|place_id:" + desOptional.get().getDestinationPlaceId();
+					}
+				}
+			}
+
+			String key = "&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
+			String finalUrl = googleApi + start + end + optimize + destinasi + key;
+//				String finalUrl = "https://maps.googleapis.com/maps/api/directions/json?origin=place_id:ChIJP7Mmxcc1t2oRQMaOYlQ2AwQ&destination=McLaren+Vale,SA"
+//						+ "&waypoints=optimize:true|Barossa+Valley,SA|place_id:ChIJPTJwAtwIy2oRcO2OYlQ2AwQ&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
+			System.out.println(finalUrl);
+			ResponseEntity<String> respEntityRes = null;
+			HttpHeaders headers = new HttpHeaders();
+			HttpEntity<String> entity = new HttpEntity<String>(headers);
+			RestTemplate restTemplate = new RestTemplate();
+
+			try {
+				respEntityRes = restTemplate.exchange(finalUrl, HttpMethod.GET, entity, String.class);
+
+				ObjectMapper objectMapper = new ObjectMapper();
+				JsonNode nodeResp = objectMapper.readTree(respEntityRes.getBody());
+
+				ArrayList<String> desSeqArr = new ArrayList<String>();
+				if (nodeResp.get("geocoded_waypoints").isArray()) {
+					for (JsonNode objNode : nodeResp.get("geocoded_waypoints")) {
+						desSeqArr.add(objNode.get("place_id").asText());
+					}
+				}
+
+				ArrayList<String> arrKeterangan = new ArrayList<String>();
+				if (nodeResp.get("routes").isArray()) {
+					for (JsonNode objNode : nodeResp.get("routes")) {
+						if (objNode.get("legs").isArray()) {
+							for (JsonNode objNode2 : objNode.get("legs")) {
+								arrKeterangan.add(objNode2.get("distance").get("text").asText());
+								arrKeterangan.add(objNode2.get("duration").get("text").asText());
+							}
+						}
+					}
+				}
+
+				ArrayList<DestinationSeq> arrDes = perDay;
+				for (int i = 0; i < arrDes.size(); i++) {
+					Optional<Destinations> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
+					if (desOpt.isPresent()) {
+						DestinationSeq desSeq = arrDes.get(i);
+						desSeq.setDestinationId(desOpt.get().getDestinationId());
+						try {
+							desSeq.setDistance(arrKeterangan.get(i * 2));
+							desSeq.setDuration(arrKeterangan.get(i * 2 + 1));
+						} catch (Exception e) {
+							desSeq.setDistance("");
+							desSeq.setDuration("");
+						}
+						arrDes.set(i, desSeq);
+						desSeqDao.save(arrDes.get(i));
+					}
+				}
+
+			} catch (HttpStatusCodeException e) {
+				System.out.println(e.getCause());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} else if (perDay.size() == 2) {
+			DestinationSeq destinationSeq = perDay.get(0);
+			Optional<Destinations> startDesOpt = desDao.findById(perDay.get(0).getDestinationId());
+			Optional<Destinations> endDesOpt = desDao.findById(perDay.get(1).getDestinationId());
+			destinationSeq = DataHelper.getDistanceandDuration(startDesOpt.get().getDestinationPlaceId(),
+					endDesOpt.get().getDestinationPlaceId(), destinationSeq);
+			desSeqDao.save(destinationSeq);
+		}
+	}
+
 	public Object get(JsonNode jsonNode) {
 		if (jsonNode.has("itineraryId")) {
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
@@ -186,6 +278,17 @@ public class DestinationSeqService {
 				desSeqDao.delete(destinationSeq);
 			}
 		}
+
+		DestinationSeq destinationSeq = new DestinationSeq();
+		destinationSeq.setSeqId(itineraryId + " - " + DataHelper.dateToString(deletedDate) + " - 1");
+		destinationSeq.setItineraryId(itineraryId);
+		destinationSeq.setSeqDate(deletedDate);
+		destinationSeq.setSeqPrice(BigDecimal.ZERO);
+		destinationSeq.setDestinationId("");
+		destinationSeq.setDuration("");
+		destinationSeq.setDistance("");
+		desSeqDao.save(destinationSeq);
+
 		return "Data Deleted";
 	}
 
@@ -246,16 +349,17 @@ public class DestinationSeqService {
 					destinationSeq.setDestination(destination);
 					desSeqDao.save(destinationSeq);
 
-					//Get Distance and Duration
+					// Get Distance and Duration
 					if (terbesar > 1) {
 						String prevSeqId = jsonNode.get("itineraryId").asText() + " - "
-								+ jsonNode.get("date").asText().replaceAll("-", "") + " - " + (terbesar-1);
+								+ jsonNode.get("date").asText().replaceAll("-", "") + " - " + (terbesar - 1);
 						Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(prevSeqId);
-						if(desSeqOpt.isPresent()) {
+						if (desSeqOpt.isPresent()) {
 							Optional<Destinations> destStart = desDao.findById(desSeqOpt.get().getDestinationId());
 							Optional<Destinations> destEnd = desDao.findById(destinationSeq.getDestinationId());
 							DestinationSeq desSeq = desSeqOpt.get();
-							desSeq = DataHelper.getDistanceandDuration(destStart.get().getDestinationPlaceId(), destEnd.get().getDestinationPlaceId(), desSeq);
+							desSeq = DataHelper.getDistanceandDuration(destStart.get().getDestinationPlaceId(),
+									destEnd.get().getDestinationPlaceId(), desSeq);
 							desSeqDao.save(desSeq);
 						}
 					}
@@ -384,6 +488,176 @@ public class DestinationSeqService {
 				e.printStackTrace();
 			}
 		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public Object deleteseq(JsonNode jsonNode) {
+		String seqId = jsonNode.get("seqId").asText();
+		Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(seqId);
+		if (desSeqOpt.isPresent()) {
+			String itineraryId = desSeqOpt.get().getItineraryId();
+			LocalDate tanggal = desSeqOpt.get().getSeqDate();
+
+			ArrayList<DestinationSeq> arrDes = new ArrayList<DestinationSeq>();
+			List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+			for (DestinationSeq destinationSeq : listData) {
+				if (destinationSeq.getSeqDate().equals(tanggal)) {
+					arrDes.add(destinationSeq);
+				}
+			}
+
+			if (arrDes.size() == 2) {
+				for (DestinationSeq destinationSeq : arrDes) {
+					destinationSeq.setDuration("");
+					destinationSeq.setDistance("");
+					if (seqId.equals(destinationSeq.getSeqId())) {
+						desSeqDao.delete(destinationSeq);
+					} else {
+						desSeqDao.save(destinationSeq);
+					}
+				}
+			} else if (arrDes.size() > 2) {
+				DestinationSeq.sortByDate(arrDes);
+				for (DestinationSeq destinationSeq : arrDes) {
+					if (seqId.equals(destinationSeq.getSeqId())) {
+						desSeqDao.delete(destinationSeq);
+					}
+				}
+			} else {
+				DestinationSeq newDesSeq = arrDes.get(0);
+				newDesSeq.setSeqPrice(BigDecimal.ZERO);
+				newDesSeq.setDestinationId("");
+				newDesSeq.setDuration("");
+				newDesSeq.setDistance("");
+				desSeqDao.save(newDesSeq);
+			}
+
+			// Optimize
+			listData = desSeqDao.findByItrId(itineraryId);
+			arrDes = new ArrayList<DestinationSeq>();
+			for (DestinationSeq destinationSeq : listData) {
+				if (destinationSeq.getSeqDate().equals(tanggal)) {
+					arrDes.add(destinationSeq);
+				}
+			}
+			DestinationSeq.sortByDate(arrDes);
+			this.optimizeDay(arrDes);
+
+			// Get Lagi
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			for (DestinationSeq destinationSeq : listDestSeq) {
+				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				if (desOpt.isPresent()) {
+					destinationSeq.setDestination(desOpt.get());
+				} else {
+					destinationSeq.setDestination(null);
+				}
+			}
+			if (listDestSeq.size() > 0) {
+				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
+				DestinationSeq.sortByDate(list);
+				return this.splitData(list);
+			}
+		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public Object editdate(JsonNode jsonNode) {
+		String itineraryId = jsonNode.get("itineraryId").asText();
+		LocalDate seqDate = DataHelper.toDate(jsonNode.get("seqDate").asText().replaceAll("-", ""));
+		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
+		if (itrOpt.isPresent()) {
+			List<DestinationSeq> lisDes = desSeqDao.findByItrId(itineraryId);
+			DestinationSeq.sortByDate(lisDes);
+			Itinerary itr = itrOpt.get();
+			long diff = ChronoUnit.DAYS.between(seqDate, lisDes.get(0).getSeqDate());
+			Integer number = (int) Math.abs(diff);
+			if (diff < 0) {
+				for (DestinationSeq destinationSeq : lisDes) {
+					destinationSeq.setSeqDate(destinationSeq.getSeqDate().plusDays(number));
+					desSeqDao.save(destinationSeq);
+				}
+			} else {
+				for (DestinationSeq destinationSeq : lisDes) {
+					destinationSeq.setSeqDate(destinationSeq.getSeqDate().minusDays(number));
+					desSeqDao.save(destinationSeq);
+				}
+			}
+			itr.setStartDate(seqDate);
+			itrDao.save(itr);
+
+			// Get Lagi
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			for (DestinationSeq destinationSeq : listDestSeq) {
+				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				if (desOpt.isPresent()) {
+					destinationSeq.setDestination(desOpt.get());
+				} else {
+					destinationSeq.setDestination(null);
+				}
+			}
+			if (listDestSeq.size() > 0) {
+				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
+				DestinationSeq.sortByDate(list);
+				return this.splitData(list);
+			}
+		}
+
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public Object change(JsonNode jsonNode) {
+		String itineraryId = jsonNode.get("itineraryId").asText();
+		LocalDate seqDate = DataHelper.toDate(jsonNode.get("seqDate").asText().replaceAll("-", ""));
+
+		ArrayList<DestinationSeq> arrDes = new ArrayList<DestinationSeq>();
+		HashMap<String, DestinationSeq> mapDes = new HashMap<String, DestinationSeq>();
+		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+		for (DestinationSeq destinationSeq : listData) {
+			if (destinationSeq.getSeqDate().equals(seqDate)) {
+				arrDes.add(destinationSeq);
+				DestinationSeq temp = new DestinationSeq();
+				temp.setDestinationId(destinationSeq.getDestinationId());
+				temp.setSeqPrice(destinationSeq.getSeqPrice());
+				mapDes.put(destinationSeq.getSeqId(), temp);
+			}
+		}
+
+		DestinationSeq.sortByDate(arrDes);
+		ArrayList<String> arrKey = new ArrayList<String>();
+		if (jsonNode.get("data").size() == arrDes.size()) {
+			for (JsonNode data : jsonNode.get("data")) {
+				arrKey.add(data.asText());
+			}
+
+			for (int i = 0; i < arrDes.size() && i < arrKey.size(); i++) {
+				DestinationSeq destinationSeq = arrDes.get(i);
+				destinationSeq.setDestinationId(mapDes.get(arrKey.get(i)).getDestinationId());
+				destinationSeq.setSeqPrice(mapDes.get(arrKey.get(i)).getSeqPrice());
+				desSeqDao.save(destinationSeq);
+				arrDes.set(i, destinationSeq);
+			}
+
+			DestinationSeq.sortByDate(arrDes);
+			this.optimizeDay(arrDes);
+
+			// Get Lagi
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			for (DestinationSeq destinationSeq : listDestSeq) {
+				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				if (desOpt.isPresent()) {
+					destinationSeq.setDestination(desOpt.get());
+				} else {
+					destinationSeq.setDestination(null);
+				}
+			}
+			if (listDestSeq.size() > 0) {
+				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
+				DestinationSeq.sortByDate(list);
+				return this.splitData(list);
+			}
+		}
+
 		return ResponseEntity.badRequest().body("Check Param");
 	}
 

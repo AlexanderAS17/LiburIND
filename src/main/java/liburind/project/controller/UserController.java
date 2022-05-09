@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import liburind.project.dao.UserRepository;
+import liburind.project.helper.DataHelper;
 import liburind.project.model.User;
 import liburind.project.service.EmailService;
 import liburind.project.service.UserService;
@@ -114,7 +115,13 @@ public class UserController {
 			user.setUserName(name);
 			if(!user.getUserPassword().equals(userServ.hashPassword(password))) {
 				return ResponseEntity.badRequest().body("Wrong Password");
-			} 
+			}
+			
+			String response = DataHelper.validatePassword(newPassword);
+			if(!"OK".equals(response)) {
+				return ResponseEntity.badRequest().body(response);
+			}
+			
 			user.setUserPassword(userServ.hashPassword(newPassword));
 			userDao.save(user);
 

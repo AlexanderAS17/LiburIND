@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import liburind.project.dao.TableCountRepository;
 import liburind.project.dao.UserRepository;
+import liburind.project.helper.DataHelper;
 import liburind.project.model.TableCount;
 import liburind.project.model.User;
 
@@ -62,20 +63,9 @@ public class UserService {
 			}
 			user.setUserEmail(email);
 
-			Pattern UpperCasePatten = Pattern.compile("[A-Z ]");
-		    Pattern lowerCasePatten = Pattern.compile("[a-z ]");
-		    Pattern digitCasePatten = Pattern.compile("[0-9 ]");
-			if (password.length() < 8) {
-				return ResponseEntity.badRequest().body("Password lenght must have alleast 8 character!!");
-			}
-			if (!UpperCasePatten.matcher(password).find()) {
-				return ResponseEntity.badRequest().body("Password must have atleast one uppercase character!!");
-			}
-			if (!lowerCasePatten.matcher(password).find()) {
-				return ResponseEntity.badRequest().body("Password must have atleast one lowercase character!!");
-			}
-			if (!digitCasePatten.matcher(password).find()) {
-				return ResponseEntity.badRequest().body("Password must have atleast one digit character!!");
+			String response = DataHelper.validatePassword(password);
+			if(!"OK".equals(response)) {
+				return ResponseEntity.badRequest().body(response);
 			}
 
 			user.setUserPassword(this.hashPassword(password));

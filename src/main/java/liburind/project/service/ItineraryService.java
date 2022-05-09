@@ -136,7 +136,7 @@ public class ItineraryService {
 		for (int i = 0; i <= days; i++) {
 			DestinationSeq destinationSeq = new DestinationSeq();
 			String desSeqId = itinerary.getItineraryId() + " - "
-					+ DataHelper.dateToString(itinerary.getStartDate().plusDays(i)) + " - 1"; //Cek
+					+ DataHelper.dateToString(itinerary.getStartDate().plusDays(i)) + " - 1"; // Cek
 
 			destinationSeq.setSeqId(desSeqId);
 			destinationSeq.setItineraryId(itinerary.getItineraryId());
@@ -289,7 +289,7 @@ public class ItineraryService {
 		}
 
 		for (Itinerary itinerary : arrItr) {
-			if("".equals(itinerary.getItineraryUserId())) {
+			if ("".equals(itinerary.getItineraryUserId())) {
 				List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
 				LocalDate date = itinerary.getStartDate();
 				for (DestinationSeq destinationSeq : listSeq) {
@@ -372,7 +372,7 @@ public class ItineraryService {
 			Itinerary itr = itrOpt.get();
 			itr.setPublicFlag(true);
 			itineraryDao.save(itr);
-			
+
 			String id = "";
 			Optional<TableCount> tblCount = tableCountDao.findById("Itinerary");
 			if (tblCount.isPresent()) {
@@ -385,8 +385,14 @@ public class ItineraryService {
 
 			itr.setItineraryId(id);
 			itr.setPublicFlag(true);
+			itr.setPublisher("");
+			Optional<User> usrOpt = userDao.findById(itr.getItineraryUserId());
+			if (usrOpt.isPresent()) {
+				itr.setPublisher(usrOpt.get().getUserName());
+			}
 			itr.setItineraryUserId("");
 			itr.setDetail(detail);
+
 			itineraryDao.save(itr);
 
 			List<DestinationSeq> listDest = desSeqDao.findByItrId(itineraryId);
@@ -422,6 +428,7 @@ public class ItineraryService {
 			itr.setItineraryId(id);
 			itr.setPublicFlag(false);
 			itr.setItineraryUserId(userId);
+			itr.setPublisher("");
 			itr.setStartDate(date);
 			itineraryDao.save(itr);
 

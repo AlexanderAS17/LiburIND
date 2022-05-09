@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -61,7 +62,7 @@ public class DataHelper {
 			return " ";
 		}
 	}
-	
+
 	public static String dateToPrettyString(LocalDate inp) {
 		try {
 			String str = inp.format(DateTimeFormatter.ofPattern("dd / MM / yyyy"));
@@ -89,6 +90,25 @@ public class DataHelper {
 			sb.append(AlphaNumericString.charAt(index));
 		}
 		return sb.toString();
+	}
+
+	public static String validatePassword(String password) {
+		Pattern UpperCasePatten = Pattern.compile("[A-Z]");
+		Pattern lowerCasePatten = Pattern.compile("[a-z]");
+		Pattern digitCasePatten = Pattern.compile("[0-9]");
+		if (password.length() < 8) {
+			return "Password lenght must have alleast 8 character!!";
+		}
+		if (!UpperCasePatten.matcher(password).find()) {
+			return "Password must have atleast one uppercase character!!";
+		}
+		if (!lowerCasePatten.matcher(password).find()) {
+			return "Password must have atleast one lowercase character!!";
+		}
+		if (!digitCasePatten.matcher(password).find()) {
+			return "Password must have atleast one digit character!!";
+		}
+		return "OK";
 	}
 
 	public static String translate(String str) {
@@ -123,7 +143,8 @@ public class DataHelper {
 		return "";
 	}
 
-	public static DestinationSeq getDistanceandDuration(String startDest, String endDest, DestinationSeq destinationSeq) {	
+	public static DestinationSeq getDistanceandDuration(String startDest, String endDest,
+			DestinationSeq destinationSeq) {
 		String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
 		String start = "place_id:" + startDest;
 		String end = "&destination=place_id:" + endDest;
@@ -134,7 +155,7 @@ public class DataHelper {
 		HttpHeaders headers = new HttpHeaders();
 		HttpEntity<String> entity = new HttpEntity<String>(headers);
 		RestTemplate restTemplate = new RestTemplate();
-		
+
 		try {
 			respEntityRes = restTemplate.exchange(finalUrl, HttpMethod.GET, entity, String.class);
 
@@ -151,7 +172,7 @@ public class DataHelper {
 					}
 				}
 			}
-			
+
 			return destinationSeq;
 		} catch (HttpStatusCodeException e) {
 			System.out.println(e.getCause());
