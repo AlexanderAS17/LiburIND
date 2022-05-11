@@ -60,7 +60,7 @@ public class TransportationController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Transportation>());
 		}
 	}
-	
+
 	@RequestMapping(value = { "/endbook" }, method = RequestMethod.GET)
 	public ResponseEntity<?> endbook(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
 		try {
@@ -90,6 +90,22 @@ public class TransportationController {
 	public ResponseEntity<?> sendinvoice(@RequestParam String key) throws IOException {
 		try {
 			return ResponseEntity.ok().body(transServ.sendinvoice(key));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(new ArrayList<TransportationCategory>());
+		}
+	}
+
+	@RequestMapping(value = {
+			"/cekpesanan" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> cekpesanan(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(transServ.cekpesanan(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

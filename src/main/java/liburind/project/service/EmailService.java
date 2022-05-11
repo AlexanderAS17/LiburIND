@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -22,8 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import liburind.project.dao.DestinationRepository;
+import liburind.project.dao.DestinationSeqRepository;
 import liburind.project.dao.UserRepository;
 import liburind.project.helper.DataHelper;
+import liburind.project.model.DestinationSeq;
+import liburind.project.model.Destinations;
 import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 
@@ -32,6 +37,12 @@ public class EmailService {
 
 	@Autowired
 	UserRepository usrDao;
+	
+	@Autowired
+	DestinationSeqRepository desSeqDao;
+	
+	@Autowired
+	DestinationRepository desDao;
 
 	public MimeMessage generateMessage() {
 		String from = "liburind@gmail.com";
@@ -116,6 +127,18 @@ public class EmailService {
 
 	public void kirimTagihan(Itinerary itinerary, User user, String transCategoryName, Integer num, LocalDate startDate,
 			Integer duration, BigDecimal sum) {
+		String tempat = "";
+		List<DestinationSeq> arrDest = desSeqDao.findByItrId(itinerary.getItineraryId());
+		DestinationSeq.sortByDate(arrDest);
+		for (DestinationSeq destinationSeq : arrDest) {
+			if(startDate.equals(destinationSeq.getSeqDate())) {
+				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				if(desOpt.isPresent()) {
+					tempat = desOpt.get().getDestinationName();
+					break;
+				}
+			}
+		}
 		try {
 			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
@@ -128,6 +151,8 @@ public class EmailService {
 			sb.append("Jenis Kendaraan: " + transCategoryName + "\n");
 			sb.append("Jumlah Kendaraan: " + num + " Unit\n");
 			sb.append("Tanggal Pemesanan: " + DataHelper.dateToPrettyString(startDate) + "\n");
+			sb.append("Tempat Penjemputan: " + tempat + "\n");
+			sb.append("Jam Penjemputan: 8:00 \n");
 			sb.append("Durasi Pemesanan: " + duration + " Hari\n");
 			sb.append("Jumlah yang Harus dibayarkan: Rp." + sum.toEngineeringString() + "\n\n");
 			sb.append("Silahkan kirimkan bukti pembayaran ke email berikut\n");
@@ -141,18 +166,20 @@ public class EmailService {
 
 			message.setText(sb.toString()
 					+ "\n\nKlik Link Berikut untuk Membatalkan Pesanan\nhttps://liburind.herokuapp.com/transportation/endbook?key="
-					+ key);
+					+ key + "\n\nUntuk Informasi lebih lanjut silahkan hubungi 081398863986 / 081272452265");
 
 			System.out.println("sending...");
 			Transport.send(message);
 			System.out.println("Sent message successfully....");
+			
+			this.kirimKeAdmin(itinerary, user, transCategoryName, num, startDate, duration, sum, tempat);
 		} catch (MessagingException mex) {
 			mex.printStackTrace();
 		}
 	}
 	
-	public void kirimKeAdmin(Itinerary itinerary, User user, String transCategoryName, Integer num, LocalDate startDate,
-			Integer duration, BigDecimal sum) {
+	private void kirimKeAdmin(Itinerary itinerary, User user, String transCategoryName, Integer num, LocalDate startDate,
+			Integer duration, BigDecimal sum, String tempat) {
 		try {
 			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress("liburind.adm1n@gmail.com"));
@@ -165,6 +192,8 @@ public class EmailService {
 			sb.append("Jenis Kendaraan: " + transCategoryName + "\n");
 			sb.append("Jumlah Kendaraan: " + num + " Unit\n");
 			sb.append("Tanggal Pemesanan: " + DataHelper.dateToPrettyString(startDate) + "\n");
+			sb.append("Tempat Penjemputan: " + tempat + "\n");
+			sb.append("Jam Penjemputan: 8:00 \n");
 			sb.append("Durasi Pemesanan: " + duration + " Hari\n");
 			sb.append("Jumlah yang Harus dibayarkan: Rp." + sum.toEngineeringString() + "\n\n");
 

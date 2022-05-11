@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 public class InvoiceResponse {
 
+	private String namaUser;
 	private ArrayList<Transportation> transArr;
 	private BigDecimal priceSum;
 	

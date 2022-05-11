@@ -182,4 +182,28 @@ public class DataHelper {
 		return null;
 	}
 
+	public static int findHamiltonianCycle(int[][] distance, boolean[] visitCity, int currPos, int cities, int count, int cost,
+			int hamiltonianCycle) {
+
+		if (count == cities && distance[currPos][0] > 0) {
+			hamiltonianCycle = Math.min(hamiltonianCycle, cost + distance[currPos][0]);
+			return hamiltonianCycle;
+		}
+
+		// BACKTRACKING STEP
+		for (int i = 0; i < cities; i++) {
+			if (visitCity[i] == false && distance[currPos][i] > 0) {
+
+				// Mark as visited
+				visitCity[i] = true;
+				hamiltonianCycle = findHamiltonianCycle(distance, visitCity, i, cities, count + 1,
+						cost + distance[currPos][i], hamiltonianCycle);
+
+				// Mark ith node as unvisited
+				visitCity[i] = false;
+			}
+		}
+		return hamiltonianCycle;
+	}
+
 }

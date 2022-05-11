@@ -572,16 +572,24 @@ public class DestinationSeqService {
 			Itinerary itr = itrOpt.get();
 			long diff = ChronoUnit.DAYS.between(seqDate, lisDes.get(0).getSeqDate());
 			Integer number = (int) Math.abs(diff);
-			if (diff < 0) {
-				for (DestinationSeq destinationSeq : lisDes) {
+			ArrayList<DestinationSeq> newArr = new ArrayList<DestinationSeq>();
+
+			for (DestinationSeq destinationSeq : lisDes) {
+				if (diff < 0) {
 					destinationSeq.setSeqDate(destinationSeq.getSeqDate().plusDays(number));
-					desSeqDao.save(destinationSeq);
-				}
-			} else {
-				for (DestinationSeq destinationSeq : lisDes) {
+				} else {
 					destinationSeq.setSeqDate(destinationSeq.getSeqDate().minusDays(number));
-					desSeqDao.save(destinationSeq);
 				}
+				DestinationSeq newData = destinationSeq;
+				String key = itineraryId + " - " + DataHelper.dateToString(newData.getSeqDate()) + " - "
+						+ newData.getSeqId().substring(20, 21);
+				desSeqDao.delete(destinationSeq);
+				newData.setSeqId(key);
+				newArr.add(newData);
+			}
+
+			for (DestinationSeq destinationSeq : newArr) {
+				desSeqDao.save(destinationSeq);
 			}
 			itr.setStartDate(seqDate);
 			itrDao.save(itr);
@@ -604,6 +612,7 @@ public class DestinationSeqService {
 		}
 
 		return ResponseEntity.badRequest().body("Check Param");
+
 	}
 
 	public Object change(JsonNode jsonNode) {
