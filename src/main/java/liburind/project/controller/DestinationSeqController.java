@@ -166,6 +166,36 @@ public class DestinationSeqController {
 		}
 	}
 
+	@RequestMapping(value = {
+			"/adddate" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> adddate(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(destSeqServ.adddate(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+		}
+	}
+
+	@RequestMapping(value = {
+			"/editbudget" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> editbudget(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(destSeqServ.editbudget(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+		}
+	}
+
 //	@RequestMapping(value = {
 //			"/updatesemua" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 //	@ResponseBody

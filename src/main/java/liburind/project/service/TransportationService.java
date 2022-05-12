@@ -229,7 +229,7 @@ public class TransportationService {
 		for (int i = 1; i <= arrTrans.size(); i++) {
 			Transportation data = arrTrans.get(i - 1);
 			sb.append(i + ". Nama Kendaraan: " + data.getTransportationName());
-			sb.append("\n    Nomor Telefon Pengemudi: " + data.getTransportationPhone() + "\n");
+			sb.append("\n    Nomor Telepon Pengemudi: " + data.getTransportationPhone() + "\n");
 		}
 
 		// Generate PDF

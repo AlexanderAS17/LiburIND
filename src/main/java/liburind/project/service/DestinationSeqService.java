@@ -670,6 +670,78 @@ public class DestinationSeqService {
 		return ResponseEntity.badRequest().body("Check Param");
 	}
 
+	public Object adddate(JsonNode jsonNode) {
+		try {
+			String itineraryId = jsonNode.get("itineraryId").asText();
+			List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+			DestinationSeq.sortByDate(listData);
+			LocalDate lastDate = listData.get(listData.size() - 1).getSeqDate();
+			lastDate = lastDate.plusDays(1);
+
+			DestinationSeq newData = new DestinationSeq();
+			String key = itineraryId + " - " + DataHelper.dateToString(lastDate) + " - 1";
+			newData.setSeqId(key);
+			newData.setItineraryId(itineraryId);
+			newData.setSeqDate(lastDate);
+			newData.setSeqPrice(BigDecimal.ZERO);
+			newData.setDestinationId("");
+			newData.setDistance("");
+			newData.setDuration("");
+			desSeqDao.save(newData);
+
+			// Get Lagi
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			for (DestinationSeq destinationSeq : listDestSeq) {
+				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				if (desOpt.isPresent()) {
+					destinationSeq.setDestination(desOpt.get());
+				} else {
+					destinationSeq.setDestination(null);
+				}
+			}
+			if (listDestSeq.size() > 0) {
+				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
+				DestinationSeq.sortByDate(list);
+				return this.splitData(list);
+			}
+		} catch (Exception e) {
+			return ResponseEntity.internalServerError().body("Internal Server Error");
+		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public Object editbudget(JsonNode jsonNode) {
+		String itineraryId = jsonNode.get("itineraryId").asText();
+		LocalDate seqDate = DataHelper.toDate(jsonNode.get("seqDate").asText().replaceAll("-", ""));
+		String budget = jsonNode.get("budget").asText();
+		List<DestinationSeq> lisDes = desSeqDao.findByItrId(itineraryId);
+		DestinationSeq.sortByDate(lisDes);
+
+		for (DestinationSeq destinationSeq : lisDes) {
+			if (destinationSeq.getSeqDate().equals(seqDate)) {
+				destinationSeq.setSeqPrice(new BigDecimal(budget));
+				desSeqDao.save(destinationSeq);
+			}
+		}
+
+		// Get Lagi
+		List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+		for (DestinationSeq destinationSeq : listDestSeq) {
+			Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+			if (desOpt.isPresent()) {
+				destinationSeq.setDestination(desOpt.get());
+			} else {
+				destinationSeq.setDestination(null);
+			}
+		}
+		if (listDestSeq.size() > 0) {
+			ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
+			DestinationSeq.sortByDate(list);
+			return this.splitData(list);
+		}
+		return ResponseEntity.badRequest().body("Check Param");
+	}
+
 //	public Object updatesemua(JsonNode jsonNode) {
 //		List<Itinerary> listItr = itrDao.findAll();
 //		for (Itinerary itinerary : listItr) {
