@@ -35,7 +35,7 @@ import liburind.project.dao.TransportationRepository;
 import liburind.project.dao.UserRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.DestinationSeq;
-import liburind.project.model.Destinations;
+import liburind.project.model.Destination;
 import liburind.project.model.InvoiceResponse;
 import liburind.project.model.Itinerary;
 import liburind.project.model.Transportation;
@@ -68,7 +68,7 @@ public class TransportationService {
 
 	public Object get(JsonNode jsonNode) {
 		if (jsonNode.has("category")) {
-			return transDao.findByCtg(jsonNode.get("category").asText());
+			return transDao.findByCategory(jsonNode.get("category").asText());
 		} else {
 			return transDao.findAllAvailable();
 		}
@@ -90,7 +90,7 @@ public class TransportationService {
 			}
 		}
 		for (TransportationCategory data : listCtg) {
-			data.setJumlah(map.get(data.getTransCategoryId()));
+			data.setSum(map.get(data.getTransCategoryId()));
 			listData.add(data);
 		}
 
@@ -100,7 +100,7 @@ public class TransportationService {
 	public Object book(JsonNode jsonNode) {
 		try {
 			ArrayList<Transportation> arrData = new ArrayList<Transportation>();
-			List<Transportation> list = transDao.findByCtg(jsonNode.get("categoryId").asText());
+			List<Transportation> list = transDao.findByCategory(jsonNode.get("categoryId").asText());
 
 			Integer num = jsonNode.has("jumlah") ? jsonNode.get("jumlah").asInt() : 0;
 			String itineraryId = jsonNode.get("itineraryId").asText();
@@ -120,6 +120,15 @@ public class TransportationService {
 					trans.setEndDate(endDate);
 					trans.setFlagUsed(true);
 					trans.setUserId(userId);
+
+					Optional<TransportationCategory> trCtgOpt = transCatgDao
+							.findById(arrData.get(0).getTransCategoryId());
+					if (trCtgOpt.isPresent()) {
+						trans.setCategoryName(trCtgOpt.get().getTransCategoryName());
+					} else {
+						trans.setCategoryName("");
+					}
+
 					arrData.add(trans);
 
 					Optional<TransportationCategory> trnCtgOpt = transCatgDao.findById(trans.getTransCategoryId());
@@ -135,12 +144,26 @@ public class TransportationService {
 			InvoiceResponse response = new InvoiceResponse();
 			response.setTransArr(arrData);
 			response.setPriceSum(sum);
-			
+			response.setStartDate(arrData.get(0).getStartDate());
+			response.setDuration(duration);
+
 			Optional<User> userOpt = usrDao.findById(userId);
-			if(userOpt.isPresent()) {
+			if (userOpt.isPresent()) {
 				response.setNamaUser(userOpt.get().getUserName());
 			} else {
 				response.setNamaUser("");
+			}
+
+			List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+			DestinationSeq.sortByDate(listData);
+			response.setPickUpPlace("");
+			for (DestinationSeq destinationSeq : listData) {
+				if (startDate.equals(destinationSeq.getSeqDate())) {
+					Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
+					if (desOpt.isPresent()) {
+						response.setPickUpPlace(desOpt.get().getDestinationName());
+					}
+				}
 			}
 
 			Optional<TransportationCategory> tranCtgOpt = transCatgDao.findById(jsonNode.get("categoryId").asText());
@@ -158,7 +181,7 @@ public class TransportationService {
 	}
 
 	public Object endbook(String key) {
-		List<Transportation> listTrans = transDao.findByItr("ITR" + key.substring(24, 27));
+		List<Transportation> listTrans = transDao.findByItinerary("ITR" + key.substring(24, 27));
 		boolean flag = false;
 		for (Transportation transportation : listTrans) {
 			if (("USR" + key.substring(27, 30)).equals(transportation.getUserId())) {
@@ -181,7 +204,7 @@ public class TransportationService {
 	public Object sendinvoice(String key) throws IOException, DocumentException {
 		String itineraryId = "ITR" + key.substring(24, 27);
 		String userId = "USR" + key.substring(27, 30);
-		List<Transportation> listTrans = transDao.findByItr(itineraryId);
+		List<Transportation> listTrans = transDao.findByItinerary(itineraryId);
 		ArrayList<Transportation> arrTrans = new ArrayList<Transportation>();
 		BigDecimal sum = BigDecimal.ZERO;
 		for (Transportation transportation : listTrans) {
@@ -200,7 +223,7 @@ public class TransportationService {
 		DestinationSeq.sortByDate(arrDest);
 		for (DestinationSeq destinationSeq : arrDest) {
 			if (arrTrans.get(0).getStartDate().equals(destinationSeq.getSeqDate())) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
 					tempat = desOpt.get().getDestinationName();
 					break;
@@ -272,26 +295,48 @@ public class TransportationService {
 
 	public Object cekpesanan(JsonNode jsonNode) {
 		String itineraryId = jsonNode.get("itineraryId").asText();
-		List<Transportation> listTrans = transDao.findByItr(itineraryId);
+		List<Transportation> listTrans = transDao.findByItinerary(itineraryId);
 
 		BigDecimal sum = BigDecimal.ZERO;
 		String userId = "";
 		for (Transportation transportation : listTrans) {
-			Optional<TransportationCategory> trnCtgOpt = transCatgDao.findById(transportation.getTransCategoryId());
-			if (trnCtgOpt.isPresent() && trnCtgOpt.get().getTransPrice() != null) {
-				sum = sum.add(trnCtgOpt.get().getTransPrice());
+			Optional<TransportationCategory> trCtgOpt = transCatgDao.findById(transportation.getTransCategoryId());
+			if (trCtgOpt.isPresent()) {
+				transportation.setCategoryName(trCtgOpt.get().getTransCategoryName());
+				if (trCtgOpt.get().getTransPrice() != null) {
+					sum = sum.add(trCtgOpt.get().getTransPrice());
+				}
+				userId = transportation.getUserId();
+			} else {
+				transportation.setCategoryName("");
 			}
-			userId = transportation.getUserId();
 		}
-		
+
+		long duration = ChronoUnit.DAYS.between(listTrans.get(0).getStartDate(), listTrans.get(0).getEndDate());
+		sum = sum.multiply(BigDecimal.valueOf(duration));
 		InvoiceResponse response = new InvoiceResponse();
 		response.setTransArr(new ArrayList<Transportation>(listTrans));
 		response.setPriceSum(sum);
+		response.setStartDate(listTrans.get(0).getStartDate());
+		response.setDuration((int) duration);
+
 		Optional<User> userOpt = usrDao.findById(userId);
-		if(userOpt.isPresent()) {
+		if (userOpt.isPresent()) {
 			response.setNamaUser(userOpt.get().getUserName());
 		} else {
 			response.setNamaUser("");
+		}
+
+		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+		DestinationSeq.sortByDate(listData);
+		response.setPickUpPlace("");
+		for (DestinationSeq destinationSeq : listData) {
+			if (listTrans.get(0).getStartDate().equals(destinationSeq.getSeqDate())) {
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				if (desOpt.isPresent()) {
+					response.setPickUpPlace(desOpt.get().getDestinationName());
+				}
+			}
 		}
 
 		return response;

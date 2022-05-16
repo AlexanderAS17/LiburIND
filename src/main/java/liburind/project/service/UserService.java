@@ -42,7 +42,7 @@ public class UserService {
 		return hashtext;
 	}
 
-	public Object save(String name, String email, String password) throws NoSuchAlgorithmException {
+	public Object register(String name, String email, String password) throws NoSuchAlgorithmException {
 		Optional<User> userOpt = userDao.findByEmail(email);
 		if (!userOpt.isPresent()) {
 			User user = new User();
@@ -64,19 +64,39 @@ public class UserService {
 			user.setUserEmail(email);
 
 			String response = DataHelper.validatePassword(password);
-			if(!"OK".equals(response)) {
+			if (!"OK".equals(response)) {
 				return ResponseEntity.badRequest().body(response);
 			}
 
 			user.setUserPassword(this.hashPassword(password));
-			user.setRoleId("roleUser");
 			user.setFlagActive(false);
 
-			emailServ.email(user);
+			emailServ.sendActivationEmail(user);
 
 			return user;
 		}
 		return ResponseEntity.badRequest().body("Email has Been Used");
+	}
+
+	public Object login(String userEmail, String userPassword) throws NoSuchAlgorithmException {
+		Optional<User> userOpt = userDao.findByEmail(userEmail);
+
+		return this.validateData(userOpt, userEmail, userPassword);
+	}
+
+	private Object validateData(Optional<User> userOpt, String userEmail, String userPassword) throws NoSuchAlgorithmException {
+		if (userOpt.isPresent()) {
+			if (!userOpt.get().getFlagActive()) {
+				return ResponseEntity.badRequest().body("Not Actived");
+			}
+			if (!this.hashPassword(userPassword).equals(userOpt.get().getUserPassword())) {
+				return ResponseEntity.badRequest().body("Wrong Password");
+			}
+		} else {
+			return ResponseEntity.badRequest().body("User Not Found");
+		}
+
+		return userOpt.get();
 	}
 
 }

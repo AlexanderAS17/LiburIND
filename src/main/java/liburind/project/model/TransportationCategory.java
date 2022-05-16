@@ -18,6 +18,6 @@ public class TransportationCategory {
 	private BigDecimal transPrice;
 	
 	@Transient
-	private int jumlah;
+	private int sum;
 
 }

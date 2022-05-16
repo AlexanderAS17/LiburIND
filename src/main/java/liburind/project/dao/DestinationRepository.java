@@ -6,14 +6,14 @@ import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
-import liburind.project.model.Destinations;
+import liburind.project.model.Destination;
 
-public interface DestinationRepository extends MongoRepository<Destinations, String> {
+public interface DestinationRepository extends MongoRepository<Destination, String> {
 	
-	@Query("{destinationName: {$regex: '?0'}}")
-	List<Destinations> findByName(String destinationName);
+	@Query("{destinationName: {$regex: '?0', '$options' : 'i'}}")
+	List<Destination> findByName(String destinationName);
 	
 	@Query("{destinationPlaceId: '?0'}")
-	Optional<Destinations> findByPlaceId(String destinationPlaceId);
+	Optional<Destination> findByPlaceId(String destinationPlaceId);
 
 }

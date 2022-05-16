@@ -30,7 +30,7 @@ import liburind.project.dao.ItineraryRepository;
 import liburind.project.dao.TableCountRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.DestinationSeq;
-import liburind.project.model.Destinations;
+import liburind.project.model.Destination;
 import liburind.project.model.Itinerary;
 import liburind.project.model.ItineraryDestination;
 import liburind.project.model.ItineraryResponse;
@@ -51,7 +51,7 @@ public class DestinationSeqService {
 	@Autowired
 	TableCountRepository tblDao;
 
-	private ItineraryDestination toModel(ItineraryDestination itr, Destinations des) {
+	private ItineraryDestination toModel(ItineraryDestination itr, Destination des) {
 		itr.setDestinationId(des.getDestinationId());
 		itr.setDestinationName(des.getDestinationName());
 		itr.setDestinationRating(des.getDestinationRating());
@@ -98,7 +98,7 @@ public class DestinationSeqService {
 				String distance = destinationSeq.getDistance() != null ? destinationSeq.getDistance() : "";
 				itrDes.setDuration(duration);
 				itrDes.setDistance(distance);
-				Optional<Destinations> desOpt = desDao.findById(itrDes.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(itrDes.getDestinationId());
 				if (desOpt.isPresent()) {
 					itrDes = this.toModel(itrDes, desOpt.get());
 				}
@@ -113,15 +113,15 @@ public class DestinationSeqService {
 	private void optimizeDay(ArrayList<DestinationSeq> perDay) {
 		if (perDay.size() > 2) {
 			String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
-			Optional<Destinations> desOptionalStart = desDao.findById(perDay.get(0).getDestinationId());
-			Optional<Destinations> desOptionalEnd = desDao.findById(perDay.get(perDay.size() - 1).getDestinationId());
+			Optional<Destination> desOptionalStart = desDao.findById(perDay.get(0).getDestinationId());
+			Optional<Destination> desOptionalEnd = desDao.findById(perDay.get(perDay.size() - 1).getDestinationId());
 			String start = "place_id:" + desOptionalStart.get().getDestinationPlaceId();
 			String end = "&destination=place_id:" + desOptionalEnd.get().getDestinationPlaceId();
 			String optimize = "&waypoints=optimize:false";
 			String destinasi = "";
 
 			for (DestinationSeq data : perDay) {
-				Optional<Destinations> desOptional = desDao.findById(data.getDestinationId());
+				Optional<Destination> desOptional = desDao.findById(data.getDestinationId());
 				if (desOptional.isPresent()) {
 					if (!desOptionalStart.get().getDestinationPlaceId()
 							.equals(desOptional.get().getDestinationPlaceId())
@@ -169,7 +169,7 @@ public class DestinationSeqService {
 
 				ArrayList<DestinationSeq> arrDes = perDay;
 				for (int i = 0; i < arrDes.size(); i++) {
-					Optional<Destinations> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
+					Optional<Destination> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
 					if (desOpt.isPresent()) {
 						DestinationSeq desSeq = arrDes.get(i);
 						desSeq.setDestinationId(desOpt.get().getDestinationId());
@@ -192,8 +192,8 @@ public class DestinationSeqService {
 			}
 		} else if (perDay.size() == 2) {
 			DestinationSeq destinationSeq = perDay.get(0);
-			Optional<Destinations> startDesOpt = desDao.findById(perDay.get(0).getDestinationId());
-			Optional<Destinations> endDesOpt = desDao.findById(perDay.get(1).getDestinationId());
+			Optional<Destination> startDesOpt = desDao.findById(perDay.get(0).getDestinationId());
+			Optional<Destination> endDesOpt = desDao.findById(perDay.get(1).getDestinationId());
 			destinationSeq = DataHelper.getDistanceandDuration(startDesOpt.get().getDestinationPlaceId(),
 					endDesOpt.get().getDestinationPlaceId(), destinationSeq);
 			desSeqDao.save(destinationSeq);
@@ -204,7 +204,7 @@ public class DestinationSeqService {
 		if (jsonNode.has("itineraryId")) {
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
 			for (DestinationSeq destinationSeq : listDestSeq) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestination(desOpt.get());
 				} else {
@@ -242,7 +242,7 @@ public class DestinationSeqService {
 				destinationSeq.setSeqDate(DataHelper.toDate(objNode.get("date").asText().replaceAll("-", "")));
 				destinationSeq.setSeqPrice(seqPrice);
 
-				Optional<Destinations> desOpt = desDao.findById(objNode.get("destinationId").asText());
+				Optional<Destination> desOpt = desDao.findById(objNode.get("destinationId").asText());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestinationId(objNode.get("destinationId").asText());
 					destinationSeq.setDestination(desOpt.get());
@@ -298,16 +298,16 @@ public class DestinationSeqService {
 			Optional<Itinerary> itrOpt = itrDao.findById(jsonNode.get("itineraryId").asText());
 			if (itrOpt.isPresent()) {
 				DestinationSeq destinationSeq = new DestinationSeq();
-				Destinations destination = new Destinations();
+				Destination destination = new Destination();
 				String destinationPlaceId = jsonNode.has("destinationPlaceId")
 						? jsonNode.get("destinationPlaceId").asText()
 						: "NoData";
 				if (!"NoData".equals(destinationPlaceId)) {
-					Optional<Destinations> desOpt = desDao.findByPlaceId(destinationPlaceId);
+					Optional<Destination> desOpt = desDao.findByPlaceId(destinationPlaceId);
 					if (desOpt.isPresent()) {
 						destination = desOpt.get();
 					} else {
-						destination = Destinations.mapJson(jsonNode);
+						destination = Destination.mapJson(jsonNode);
 						String id = "";
 						Optional<TableCount> tblCount = tblDao.findById("Destination");
 						if (tblCount.isPresent()) {
@@ -355,8 +355,8 @@ public class DestinationSeqService {
 								+ jsonNode.get("date").asText().replaceAll("-", "") + " - " + (terbesar - 1);
 						Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(prevSeqId);
 						if (desSeqOpt.isPresent()) {
-							Optional<Destinations> destStart = desDao.findById(desSeqOpt.get().getDestinationId());
-							Optional<Destinations> destEnd = desDao.findById(destinationSeq.getDestinationId());
+							Optional<Destination> destStart = desDao.findById(desSeqOpt.get().getDestinationId());
+							Optional<Destination> destEnd = desDao.findById(destinationSeq.getDestinationId());
 							DestinationSeq desSeq = desSeqOpt.get();
 							desSeq = DataHelper.getDistanceandDuration(destStart.get().getDestinationPlaceId(),
 									destEnd.get().getDestinationPlaceId(), desSeq);
@@ -406,7 +406,7 @@ public class DestinationSeqService {
 			String destinasi = "";
 
 			for (DestinationSeq data : arrDes) {
-				Optional<Destinations> desOptional = desDao.findById(data.getDestinationId());
+				Optional<Destination> desOptional = desDao.findById(data.getDestinationId());
 				if (desOptional.isPresent()) {
 					if (!startDest.equals(desOptional.get().getDestinationPlaceId())
 							&& !endDest.equals(desOptional.get().getDestinationPlaceId())) {
@@ -451,7 +451,7 @@ public class DestinationSeqService {
 				}
 
 				for (int i = 0; i < arrDes.size(); i++) {
-					Optional<Destinations> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
+					Optional<Destination> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
 					if (desOpt.isPresent()) {
 						DestinationSeq desSeq = arrDes.get(i);
 						desSeq.setDestinationId(desOpt.get().getDestinationId());
@@ -469,7 +469,7 @@ public class DestinationSeqService {
 				// Get Lagi
 				List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
 				for (DestinationSeq destinationSeq : listDestSeq) {
-					Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+					Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 					if (desOpt.isPresent()) {
 						destinationSeq.setDestination(desOpt.get());
 					} else {
@@ -546,7 +546,7 @@ public class DestinationSeqService {
 			// Get Lagi
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestination(desOpt.get());
 				} else {
@@ -597,7 +597,7 @@ public class DestinationSeqService {
 			// Get Lagi
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestination(desOpt.get());
 				} else {
@@ -653,7 +653,7 @@ public class DestinationSeqService {
 			// Get Lagi
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestination(desOpt.get());
 				} else {
@@ -692,7 +692,7 @@ public class DestinationSeqService {
 			// Get Lagi
 			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
 					destinationSeq.setDestination(desOpt.get());
 				} else {
@@ -727,7 +727,7 @@ public class DestinationSeqService {
 		// Get Lagi
 		List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
 		for (DestinationSeq destinationSeq : listDestSeq) {
-			Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+			Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 			if (desOpt.isPresent()) {
 				destinationSeq.setDestination(desOpt.get());
 			} else {

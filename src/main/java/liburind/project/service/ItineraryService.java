@@ -45,7 +45,7 @@ public class ItineraryService {
 	UserRepository userDao;
 
 	@Autowired
-	DestinationSeqRepository desSeqDao;
+	DestinationSeqRepository destinationSeqDao;
 
 	@Autowired
 	EmailService emailServ;
@@ -69,7 +69,7 @@ public class ItineraryService {
 			itinerary.setStartDate(localDate);
 			itineraryDao.save(itinerary);
 
-			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+			List<DestinationSeq> listSeq = destinationSeqDao.findByItrId(itinerary.getItineraryId());
 			LocalDate date = itinerary.getStartDate();
 			for (DestinationSeq destinationSeq : listSeq) {
 				if (destinationSeq.getSeqDate().isAfter(date)) {
@@ -144,7 +144,7 @@ public class ItineraryService {
 			destinationSeq.setSeqPrice(BigDecimal.ZERO);
 			destinationSeq.setDestinationId("");
 
-			desSeqDao.save(destinationSeq);
+			destinationSeqDao.save(destinationSeq);
 		}
 		return itinerary;
 	}
@@ -235,14 +235,14 @@ public class ItineraryService {
 		return null;
 	}
 
-	public ArrayList<Itinerary> getItrList(String userId) {
+	public ArrayList<Itinerary> getUserItenerary(String userId) {
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
 		List<Itinerary> arrItr = itineraryDao.findByUserId(userId);
 		List<ItineraryUser> list = itineraryUserDao.findAll();
 		Integer count = 1;
 
 		for (Itinerary itinerary : arrItr) {
-			List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+			List<DestinationSeq> listSeq = destinationSeqDao.findByItrId(itinerary.getItineraryId());
 			LocalDate date = itinerary.getStartDate();
 			for (DestinationSeq destinationSeq : listSeq) {
 				if (destinationSeq.getSeqDate().isAfter(date)) {
@@ -260,7 +260,7 @@ public class ItineraryService {
 						.findById(itineraryUser.getIteneraryUserKey().getItineraryId());
 				if (itrOpt.isPresent()) {
 					if (!map.containsKey(itrOpt.get().getItineraryId())) {
-						List<DestinationSeq> listSeq = desSeqDao.findByItrId(itrOpt.get().getItineraryId());
+						List<DestinationSeq> listSeq = destinationSeqDao.findByItrId(itrOpt.get().getItineraryId());
 						LocalDate date = itrOpt.get().getStartDate();
 						for (DestinationSeq destinationSeq : listSeq) {
 							if (destinationSeq.getSeqDate().isAfter(date)) {
@@ -276,7 +276,7 @@ public class ItineraryService {
 		}
 
 		if (arrItr.size() == 0) {
-			return null;
+			return new ArrayList<Itinerary>();
 		}
 		return new ArrayList<Itinerary>(arrItr);
 	}
@@ -290,7 +290,7 @@ public class ItineraryService {
 
 		for (Itinerary itinerary : arrItr) {
 			if ("".equals(itinerary.getItineraryUserId())) {
-				List<DestinationSeq> listSeq = desSeqDao.findByItrId(itinerary.getItineraryId());
+				List<DestinationSeq> listSeq = destinationSeqDao.findByItrId(itinerary.getItineraryId());
 				LocalDate date = itinerary.getStartDate();
 				for (DestinationSeq destinationSeq : listSeq) {
 					if (destinationSeq.getSeqDate().isAfter(date)) {
@@ -307,7 +307,7 @@ public class ItineraryService {
 
 	public Itinerary get(String itineraryId) {
 		Optional<Itinerary> itrOpt = itineraryDao.findById(itineraryId);
-		List<DestinationSeq> listSeq = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> listSeq = destinationSeqDao.findByItrId(itineraryId);
 
 		if (itrOpt.isPresent()) {
 			LocalDate date = itrOpt.get().getStartDate();
@@ -329,10 +329,10 @@ public class ItineraryService {
 			if (userId.equals(itrOpt.get().getItineraryUserId())) {
 				itineraryDao.delete(itrOpt.get());
 				ArrayList<User> arrUser = this.getUser(itineraryId);
-				List<DestinationSeq> listSeq = desSeqDao.findByItrId(itineraryId);
+				List<DestinationSeq> listSeq = destinationSeqDao.findByItrId(itineraryId);
 
 				for (DestinationSeq destinationSeq : listSeq) {
-					desSeqDao.delete(destinationSeq);
+					destinationSeqDao.delete(destinationSeq);
 				}
 
 				for (User user : arrUser) {
@@ -363,7 +363,7 @@ public class ItineraryService {
 		return ResponseEntity.badRequest().body("Invite Friend Deleted");
 	}
 
-	public Object publish(JsonNode jsonNode) {
+	public Object publishItenerary(JsonNode jsonNode) {
 		String itineraryId = jsonNode.get("itineraryId").asText();
 		String detail = jsonNode.get("detail").asText();
 
@@ -395,11 +395,11 @@ public class ItineraryService {
 
 			itineraryDao.save(itr);
 
-			List<DestinationSeq> listDest = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listDest = destinationSeqDao.findByItrId(itineraryId);
 			for (DestinationSeq data : listDest) {
 				data.setSeqId("PUB" + data.getSeqId());
 				data.setItineraryId(id);
-				desSeqDao.save(data);
+				destinationSeqDao.save(data);
 			}
 
 			return "Data Published";
@@ -432,15 +432,22 @@ public class ItineraryService {
 			itr.setStartDate(date);
 			itineraryDao.save(itr);
 
-			List<DestinationSeq> listDest = desSeqDao.findByItrId(itineraryId);
-			int incDate = 0;
+			List<DestinationSeq> listDest = destinationSeqDao.findByItrId(itineraryId);
+			DestinationSeq.sortByDate(listDest);
+			long diff = ChronoUnit.DAYS.between(date, listDest.get(0).getSeqDate());
+			Integer number = (int) Math.abs(diff);
 			for (DestinationSeq data : listDest) {
+				if (diff < 0) {
+					data.setSeqDate(data.getSeqDate().plusDays(number));
+				} else {
+					data.setSeqDate(data.getSeqDate().minusDays(number));
+				}
+				
 				String key = data.getSeqId().replaceAll("PUB", "");
 				data.setSeqId(
-						id + " - " + DataHelper.dateToString(date.plusDays(incDate)) + key.substring(17, key.length()));
+						id + " - " + DataHelper.dateToString(data.getSeqDate()) + key.substring(17, key.length()));
 				data.setItineraryId(id);
-				desSeqDao.save(data);
-				incDate++;
+				destinationSeqDao.save(data);
 			}
 
 			return "Data Copied";

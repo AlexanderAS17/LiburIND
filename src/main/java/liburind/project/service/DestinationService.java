@@ -18,7 +18,7 @@ import liburind.project.dao.TableCountRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.Category;
 import liburind.project.model.DestinationCategory;
-import liburind.project.model.Destinations;
+import liburind.project.model.Destination;
 import liburind.project.model.TableCount;
 
 @Service
@@ -36,7 +36,7 @@ public class DestinationService {
 	@Autowired
 	TableCountRepository tblDao;
 
-	private Destinations getCategory(Destinations destination) {
+	private Destination getCategory(Destination destination) {
 		ArrayList<Category> arrCtg = new ArrayList<Category>();
 		List<DestinationCategory> ctgList = destCtgDao.findByDestination(destination.getDestinationId());
 		for (DestinationCategory data : ctgList) {
@@ -53,17 +53,17 @@ public class DestinationService {
 		if (jsonNode.has("destinationId")) {
 			String destinationId = jsonNode.get("destinationId").asText();
 
-			Destinations destination = new Destinations();
-			Optional<Destinations> destOpt = destDao.findById(destinationId);
+			Destination destination = new Destination();
+			Optional<Destination> destOpt = destDao.findById(destinationId);
 			if (destOpt.isPresent()) {
 				destination = destOpt.get();
 				destination = this.getCategory(destination);
 			}
 			return destination;
 		} else {
-			ArrayList<Destinations> arrDest = new ArrayList<Destinations>();
-			List<Destinations> listDest = destDao.findAll();
-			for (Destinations destination : listDest) {
+			ArrayList<Destination> arrDest = new ArrayList<Destination>();
+			List<Destination> listDest = destDao.findAll();
+			for (Destination destination : listDest) {
 				destination = this.getCategory(destination);
 				arrDest.add(destination);
 			}
@@ -71,11 +71,11 @@ public class DestinationService {
 		}
 	}
 
-	public ArrayList<Destinations> getCategory(String categoryId) {
-		ArrayList<Destinations> arrDest = new ArrayList<Destinations>();
+	public ArrayList<Destination> getCategory(String categoryId) {
+		ArrayList<Destination> arrDest = new ArrayList<Destination>();
 		List<DestinationCategory> ctgList = destCtgDao.findByCategory(categoryId);
 		for (DestinationCategory data : ctgList) {
-			Optional<Destinations> destOpt = destDao.findById(data.getDestinationId());
+			Optional<Destination> destOpt = destDao.findById(data.getDestinationId());
 			if (destOpt.isPresent()) {
 				arrDest.add(destOpt.get());
 			}
@@ -84,7 +84,7 @@ public class DestinationService {
 	}
 
 	public Object delete(String destinationId) {
-		Optional<Destinations> destOpt = destDao.findById(destinationId);
+		Optional<Destination> destOpt = destDao.findById(destinationId);
 		if (destOpt.isPresent()) {
 			destDao.deleteById(destinationId);
 			return "Data Deleted";
@@ -94,12 +94,12 @@ public class DestinationService {
 	}
 
 	public Object save(JsonNode jsonNode) {
-		Destinations destination = Destinations.mapJson(jsonNode);
+		Destination destination = Destination.mapJson(jsonNode);
 		String id = "";
 
 		if (jsonNode.has("destinationPlaceId")) {
 			id = jsonNode.get("destinationPlaceId").asText();
-			Optional<Destinations> destOpt = destDao.findByPlaceId(id);
+			Optional<Destination> destOpt = destDao.findByPlaceId(id);
 			if (destOpt.isPresent()) {
 				String detail = jsonNode.has("destinationDetail") ? jsonNode.get("destinationDetail").asText()
 						: destOpt.get().getDestinationDetail();
@@ -124,10 +124,10 @@ public class DestinationService {
 		return destination;
 	}
 
-	public Destinations updateCategory(Destinations destination) {
-		Optional<Destinations> destOpt = destDao.findById(destination.getDestinationId());
+	public Destination updateCategory(Destination destination) {
+		Optional<Destination> destOpt = destDao.findById(destination.getDestinationId());
 		if (destOpt.isPresent()) {
-			Destinations destinations = this.getCategory(destination);
+			Destination destinations = this.getCategory(destination);
 			HashMap<String, Category> mapCtg = new HashMap<String, Category>();
 			List<DestinationCategory> listData = destCtgDao.findByDestination(destination.getDestinationId());
 
@@ -227,9 +227,9 @@ public class DestinationService {
 	}
 
 	public Object search(String destinationName) {
-		ArrayList<Destinations> arrDest = new ArrayList<Destinations>();
-		List<Destinations> listDest = destDao.findByName(destinationName);
-		for (Destinations destination : listDest) {
+		ArrayList<Destination> arrDest = new ArrayList<Destination>();
+		List<Destination> listDest = destDao.findByName(destinationName);
+		for (Destination destination : listDest) {
 			destination = this.getCategory(destination);
 			arrDest.add(destination);
 		}

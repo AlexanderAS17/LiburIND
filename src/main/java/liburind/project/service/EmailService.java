@@ -28,7 +28,7 @@ import liburind.project.dao.DestinationSeqRepository;
 import liburind.project.dao.UserRepository;
 import liburind.project.helper.DataHelper;
 import liburind.project.model.DestinationSeq;
-import liburind.project.model.Destinations;
+import liburind.project.model.Destination;
 import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 
@@ -70,7 +70,7 @@ public class EmailService {
 		}
 	}
 
-	public void email(User user) {
+	public void sendActivationEmail(User user) {
 		try {
 			MimeMessage message = this.generateMessage();
 			message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getUserEmail()));
@@ -132,7 +132,7 @@ public class EmailService {
 		DestinationSeq.sortByDate(arrDest);
 		for (DestinationSeq destinationSeq : arrDest) {
 			if(startDate.equals(destinationSeq.getSeqDate())) {
-				Optional<Destinations> desOpt = desDao.findById(destinationSeq.getDestinationId());
+				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if(desOpt.isPresent()) {
 					tempat = desOpt.get().getDestinationName();
 					break;

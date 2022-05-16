@@ -61,24 +61,11 @@ public class UserController {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 
-		String email = jsonNode.get("email").asText();
-		String password = jsonNode.get("password").asText();
+		String userEmail = jsonNode.get("email").asText();
+		String userPassword = jsonNode.get("password").asText();
 
 		try {
-			Optional<User> userOpt = userDao.findByEmail(email);
-
-			if (userOpt.isPresent()) {
-				if (!userOpt.get().getFlagActive()) {
-					return ResponseEntity.badRequest().body("Not Actived");
-				}
-				if (!userServ.hashPassword(password).equals(userOpt.get().getUserPassword())) {
-					return ResponseEntity.badRequest().body("Wrong Password");
-				}
-			} else {
-				return ResponseEntity.badRequest().body("User Not Found");
-			}
-
-			return ResponseEntity.ok(userOpt.get());
+			return ResponseEntity.ok(userServ.login(userEmail, userPassword));
 		} catch (Exception e) {
 			return ResponseEntity.internalServerError().body(new User());
 		}
@@ -94,7 +81,7 @@ public class UserController {
 		String email = jsonNode.get("email").asText();
 		String password = jsonNode.get("password").asText();
 
-		return ResponseEntity.ok(userServ.save(name, email, password));
+		return ResponseEntity.ok(userServ.register(name, email, password));
 	}
 
 	@RequestMapping(value = { "/edit" }, method = RequestMethod.POST)

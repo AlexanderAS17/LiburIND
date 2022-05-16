@@ -25,7 +25,7 @@ public class DestinationSeq {
 	private String distance;
 	
 	@Transient
-	private Destinations destination;
+	private Destination destination;
 
 	public static void sortByDate(ArrayList<DestinationSeq> list) {
 		list.sort((o1, o2) -> o1.getSeqId().compareTo(o2.getSeqId()));

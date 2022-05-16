@@ -17,19 +17,17 @@ public class User {
 	private String userEmail;
 	@JsonIgnore
 	private String userPassword;
-	private String roleId;
 	@JsonIgnore
 	private Boolean flagActive;
 	@JsonIgnore
 	private String key;
 	
-	public User(String userId, String userName, String userEmail, String userPassword, String roleId) {
+	public User(String userId, String userName, String userEmail, String userPassword) {
 		super();
 		this.userId = userId;
 		this.userName = userName;
 		this.userEmail = userEmail;
 		this.userPassword = userPassword;
-		this.roleId = roleId;
 	}
 
 	public User() {

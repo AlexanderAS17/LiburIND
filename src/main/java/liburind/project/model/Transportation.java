@@ -3,6 +3,7 @@ package liburind.project.model;
 import java.time.LocalDate;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,11 +25,12 @@ public class Transportation {
 	private String itineraryId;
 	@JsonIgnore
 	private String userId;
-	@JsonIgnore
 	private LocalDate startDate;
-	@JsonIgnore
 	private LocalDate endDate;
 	@JsonIgnore
 	private Boolean flagUsed;
+	
+	@Transient
+	private String categoryName;
 
 }

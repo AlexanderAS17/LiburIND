@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import liburind.project.model.Destinations;
+import liburind.project.model.Destination;
 import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 import liburind.project.service.ItineraryService;
@@ -35,7 +35,7 @@ public class ItineraryController {
 	@RequestMapping(value = {
 			"/save" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<?> save(@RequestBody String json) throws IOException {
+	public ResponseEntity<?> saveItinerary(@RequestBody String json) throws IOException {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
@@ -57,7 +57,7 @@ public class ItineraryController {
 	@RequestMapping(value = {
 			"/update" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<?> update(@RequestBody String json) throws IOException {
+	public ResponseEntity<?> updateItinerary(@RequestBody String json) throws IOException {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
@@ -128,16 +128,15 @@ public class ItineraryController {
 	}
 
 	@RequestMapping(value = { "/list" }, method = RequestMethod.POST)
-	public ResponseEntity<?> getList(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> getUserItenerary(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 
 		String userId = jsonNode.get("userId").asText();
-
-		ArrayList<Itinerary> arrItr = itineraryServ.getItrList(userId);
-		if (arrItr != null) {
-			return ResponseEntity.ok(arrItr);
-		} else {
+		
+		try {
+			return ResponseEntity.ok().body(itineraryServ.getUserItenerary(userId));
+		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<Itinerary>());
 		}
 	}
@@ -154,12 +153,12 @@ public class ItineraryController {
 	}
 
 	@RequestMapping(value = { "/publish" }, method = RequestMethod.POST)
-	public ResponseEntity<?> publish(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> publishItenerary(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 		
 		try {
-			return ResponseEntity.ok(itineraryServ.publish(jsonNode));
+			return ResponseEntity.ok(itineraryServ.publishItenerary(jsonNode));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
 		}
@@ -206,7 +205,7 @@ public class ItineraryController {
 			return ResponseEntity.ok().body(itineraryServ.search(itineraryName));
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destinations>());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
 		}
 	}
 

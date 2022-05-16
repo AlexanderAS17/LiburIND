@@ -10,12 +10,12 @@ import liburind.project.model.Transportation;
 public interface TransportationRepository extends MongoRepository<Transportation, String> {
 
 	@Query("{transCategoryId:'?0'}")
-	List<Transportation> findByCtg(String category);
+	List<Transportation> findByCategory(String category);
 	
 	@Query("{flagUsed: false}")
 	List<Transportation> findAllAvailable();
 	
 	@Query("{itineraryId:'?0'}")
-	List<Transportation> findByItr(String itineraryId);
+	List<Transportation> findByItinerary(String itineraryId);
 
 }
