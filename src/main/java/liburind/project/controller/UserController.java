@@ -1,21 +1,16 @@
 package liburind.project.controller;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -23,7 +18,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import liburind.project.dao.UserRepository;
-import liburind.project.helper.DataHelper;
 import liburind.project.model.User;
 import liburind.project.service.EmailService;
 import liburind.project.service.UserService;
@@ -131,24 +125,24 @@ public class UserController {
 		}
 	}
 
-	@PostMapping(value = "/tryphoto")
-	public ResponseEntity<?> signupUser(@RequestParam("photo") MultipartFile photo) throws IOException {
-//		Path uploadPath = Paths.get("D:\\Project\\Heroku\\Foto\\");
-//
-//		if (!Files.exists(uploadPath)) {
-//			Files.createDirectories(uploadPath);
+//	@PostMapping(value = "/tryphoto")
+//	public ResponseEntity<?> signupUser(@RequestParam("photo") MultipartFile photo) throws IOException {
+////		Path uploadPath = Paths.get("D:\\Project\\Heroku\\Foto\\");
+////
+////		if (!Files.exists(uploadPath)) {
+////			Files.createDirectories(uploadPath);
+////		}
+////
+////		try (InputStream inputStream = photo.getInputStream()) {
+////			Path filePath = uploadPath.resolve(photo.getName());
+////			Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+//		try {
+//			InputStream inputStream = photo.getInputStream();
+//		} catch (IOException ioe) {
+//			return ResponseEntity.badRequest().body("Error");
 //		}
+//		return ResponseEntity.ok().body("OK");
 //
-//		try (InputStream inputStream = photo.getInputStream()) {
-//			Path filePath = uploadPath.resolve(photo.getName());
-//			Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-		try {
-			InputStream inputStream = photo.getInputStream();
-		} catch (IOException ioe) {
-			return ResponseEntity.badRequest().body("Error");
-		}
-		return ResponseEntity.ok().body("OK");
-
-	}
+//	}
 
 }

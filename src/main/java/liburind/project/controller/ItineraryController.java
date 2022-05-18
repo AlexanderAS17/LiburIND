@@ -211,7 +211,6 @@ public class ItineraryController {
 
 	@RequestMapping(value = { "/join" }, method = RequestMethod.GET)
 	public ResponseEntity<?> join(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
-
 		try {
 			return ResponseEntity.ok().body(itineraryServ.active(key));
 		} catch (Exception e) {
