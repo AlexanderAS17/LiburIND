@@ -49,7 +49,7 @@ public class DestinationService {
 		return destination;
 	}
 
-	public Object get(JsonNode jsonNode) {
+	public Object getData(JsonNode jsonNode) {
 		if (jsonNode.has("destinationId")) {
 			String destinationId = jsonNode.get("destinationId").asText();
 
@@ -104,20 +104,25 @@ public class DestinationService {
 				String detail = jsonNode.has("destinationDetail") ? jsonNode.get("destinationDetail").asText()
 						: destOpt.get().getDestinationDetail();
 				destination.setDestinationDetail(detail);
-			} else {
-				return ResponseEntity.badRequest().body("Not Found");
+				destination.setDestinationId(destOpt.get().getDestinationId());
 			}
-		} else {
+		}
+		
+		if("".equals(destination.getDestinationId())) {
 			Optional<TableCount> tblCount = tblDao.findById("Destination");
 			if (tblCount.isPresent()) {
 				id = String.format("DES%03d", tblCount.get().getCount() + 1);
 				tblDao.save(new TableCount("Destination", tblCount.get().getCount() + 1));
+				destination.setDestinationId(id);
 			} else {
 				id = String.format("DES%03d", 1);
 				tblDao.save(new TableCount("Destination", 1));
+				destination.setDestinationId(id);
 			}
 		}
-		destination.setDestinationId(id);
+		
+		System.out.println(destination.getDestinationType());
+		
 		destination = this.updateCategory(destination);
 		destDao.save(destination);
 

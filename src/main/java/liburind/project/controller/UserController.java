@@ -43,15 +43,13 @@ public class UserController {
 	EmailService emailServ;
 
 	@RequestMapping(value = { "/get" }, method = RequestMethod.POST)
-	public ResponseEntity<?> getUser(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> getUserDetail(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
-
-		Optional<User> userOpt = userDao.findById(jsonNode.get("userId").asText());
-
-		if (userOpt.isPresent()) {
-			return ResponseEntity.ok(userOpt.get());
-		} else {
+		
+		try {
+			return ResponseEntity.ok(userServ.getUserDetail(jsonNode));
+		} catch (Exception e) {
 			return ResponseEntity.status(404).body("Not Found");
 		}
 	}
@@ -65,7 +63,7 @@ public class UserController {
 		String userPassword = jsonNode.get("password").asText();
 
 		try {
-			return ResponseEntity.ok(userServ.login(userEmail, userPassword));
+			return userServ.login(userEmail, userPassword);
 		} catch (Exception e) {
 			return ResponseEntity.internalServerError().body(new User());
 		}
@@ -95,31 +93,15 @@ public class UserController {
 		String password = jsonNode.get("password").asText();
 		String newPassword = jsonNode.get("newPassword").asText();
 
-		Optional<User> userOpt = userDao.findById(userId);
-
-		if (userOpt.isPresent()) {
-			User user = userOpt.get();
-			user.setUserName(name);
-			if(!user.getUserPassword().equals(userServ.hashPassword(password))) {
-				return ResponseEntity.badRequest().body("Wrong Password");
-			}
-			
-			String response = DataHelper.validatePassword(newPassword);
-			if(!"OK".equals(response)) {
-				return ResponseEntity.badRequest().body(response);
-			}
-			
-			user.setUserPassword(userServ.hashPassword(newPassword));
-			userDao.save(user);
-
-			return ResponseEntity.ok(user);
-		} else {
-			return ResponseEntity.status(404).body("Not Found");
+		try {
+			return ResponseEntity.ok(userServ.editProfile(userId, name, password, newPassword));
+		} catch (Exception e) {
+			return ResponseEntity.internalServerError().body("Check Param");
 		}
 	}
 
 	@RequestMapping(value = { "/findfriend" }, method = RequestMethod.POST)
-	public ResponseEntity<?> findFriend(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> findByEmail(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 

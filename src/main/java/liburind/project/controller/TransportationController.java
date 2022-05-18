@@ -100,12 +100,12 @@ public class TransportationController {
 	@RequestMapping(value = {
 			"/cekpesanan" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<?> cekpesanan(@RequestBody String json) throws IOException {
+	public ResponseEntity<?> cekPesanan(@RequestBody String json) throws IOException {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
 
-			return ResponseEntity.ok().body(transServ.cekpesanan(jsonNode));
+			return ResponseEntity.ok().body(transServ.cekPesanan(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

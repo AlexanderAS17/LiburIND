@@ -10,6 +10,6 @@ import liburind.project.model.DestinationSeq;
 public interface DestinationSeqRepository extends MongoRepository<DestinationSeq, String> {
 	
 	@Query("{itineraryId: ?0}")
-	List<DestinationSeq> findByItrId(String itineraryId);
+	List<DestinationSeq> findByItineraryId(String itineraryId);
 
 }

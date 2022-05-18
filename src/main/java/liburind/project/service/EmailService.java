@@ -128,7 +128,7 @@ public class EmailService {
 	public void kirimTagihan(Itinerary itinerary, User user, String transCategoryName, Integer num, LocalDate startDate,
 			Integer duration, BigDecimal sum) {
 		String tempat = "";
-		List<DestinationSeq> arrDest = desSeqDao.findByItrId(itinerary.getItineraryId());
+		List<DestinationSeq> arrDest = desSeqDao.findByItineraryId(itinerary.getItineraryId());
 		DestinationSeq.sortByDate(arrDest);
 		for (DestinationSeq destinationSeq : arrDest) {
 			if(startDate.equals(destinationSeq.getSeqDate())) {

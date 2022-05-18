@@ -68,7 +68,7 @@ public class DestinationSeqService {
 		return itr;
 	}
 
-	private ArrayList<ItineraryResponse> splitData(List<DestinationSeq> listDestSeq) {
+	private ArrayList<ItineraryResponse> mappingData(List<DestinationSeq> listDestSeq) {
 		ArrayList<ArrayList<DestinationSeq>> splited = new ArrayList<ArrayList<DestinationSeq>>();
 		ArrayList<DestinationSeq> arrData = new ArrayList<DestinationSeq>();
 		ArrayList<ItineraryResponse> response = new ArrayList<ItineraryResponse>();
@@ -110,7 +110,7 @@ public class DestinationSeqService {
 		return response;
 	}
 
-	private void optimizeDay(ArrayList<DestinationSeq> perDay) {
+	private void getWayPoint(ArrayList<DestinationSeq> perDay) {
 		if (perDay.size() > 2) {
 			String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
 			Optional<Destination> desOptionalStart = desDao.findById(perDay.get(0).getDestinationId());
@@ -200,9 +200,9 @@ public class DestinationSeqService {
 		}
 	}
 
-	public Object get(JsonNode jsonNode) {
+	public Object getByItineraryId(JsonNode jsonNode) {
 		if (jsonNode.has("itineraryId")) {
-			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(jsonNode.get("itineraryId").asText());
 			for (DestinationSeq destinationSeq : listDestSeq) {
 				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
@@ -214,7 +214,7 @@ public class DestinationSeqService {
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 				DestinationSeq.sortByDate(list);
-				return this.splitData(list);
+				return this.mappingData(list);
 			}
 		}
 		return ResponseEntity.badRequest().body("Check Param");
@@ -263,7 +263,7 @@ public class DestinationSeqService {
 				itr.setStartDate(startDateTime);
 				itrDao.save(itr);
 			}
-			ArrayList<ItineraryResponse> arrData = this.splitData(arrDest);
+			ArrayList<ItineraryResponse> arrData = this.mappingData(arrDest);
 			return arrData;
 		}
 		return ResponseEntity.badRequest().body("Check Param");
@@ -271,7 +271,7 @@ public class DestinationSeqService {
 
 	@Transactional(rollbackOn = Exception.class)
 	public Object delete(String itineraryId, String date) {
-		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> listData = desSeqDao.findByItineraryId(itineraryId);
 		LocalDate deletedDate = DataHelper.toDate(date);
 		for (DestinationSeq destinationSeq : listData) {
 			if (destinationSeq.getSeqDate().equals(deletedDate)) {
@@ -323,7 +323,7 @@ public class DestinationSeqService {
 
 					Integer terbesar = 1;
 					LocalDate seqDate = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", ""));
-					List<DestinationSeq> listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
+					List<DestinationSeq> listDes = desSeqDao.findByItineraryId(jsonNode.get("itineraryId").asText());
 					if (listDes.size() > 0) {
 						for (DestinationSeq desSeq : listDes) {
 							if (seqDate.equals(desSeq.getSeqDate())) {
@@ -364,10 +364,10 @@ public class DestinationSeqService {
 						}
 					}
 
-					listDes = desSeqDao.findByItrId(jsonNode.get("itineraryId").asText());
+					listDes = desSeqDao.findByItineraryId(jsonNode.get("itineraryId").asText());
 					DestinationSeq.sortByDate(listDes);
 
-					ArrayList<ItineraryResponse> arrData = this.splitData(listDes);
+					ArrayList<ItineraryResponse> arrData = this.mappingData(listDes);
 					return arrData;
 				}
 			}
@@ -390,7 +390,7 @@ public class DestinationSeqService {
 		String endDest = jsonNode.get("end").asText();
 		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
 		if (itrOpt.isPresent()) {
-			List<DestinationSeq> listDes = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listDes = desSeqDao.findByItineraryId(itineraryId);
 			ArrayList<DestinationSeq> arrDes = new ArrayList<DestinationSeq>();
 			for (DestinationSeq destinationSeq : listDes) {
 				if (date.equals(destinationSeq.getSeqDate())) {
@@ -467,7 +467,7 @@ public class DestinationSeqService {
 				}
 
 				// Get Lagi
-				List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+				List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(itineraryId);
 				for (DestinationSeq destinationSeq : listDestSeq) {
 					Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 					if (desOpt.isPresent()) {
@@ -479,7 +479,7 @@ public class DestinationSeqService {
 				if (listDestSeq.size() > 0) {
 					ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 					DestinationSeq.sortByDate(list);
-					return this.splitData(list);
+					return this.mappingData(list);
 				}
 
 			} catch (HttpStatusCodeException e) {
@@ -491,7 +491,7 @@ public class DestinationSeqService {
 		return ResponseEntity.badRequest().body("Check Param");
 	}
 
-	public Object deleteseq(JsonNode jsonNode) {
+	public Object deleteSeq(JsonNode jsonNode) {
 		String seqId = jsonNode.get("seqId").asText();
 		Optional<DestinationSeq> desSeqOpt = desSeqDao.findById(seqId);
 		if (desSeqOpt.isPresent()) {
@@ -499,7 +499,7 @@ public class DestinationSeqService {
 			LocalDate tanggal = desSeqOpt.get().getSeqDate();
 
 			ArrayList<DestinationSeq> arrDes = new ArrayList<DestinationSeq>();
-			List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listData = desSeqDao.findByItineraryId(itineraryId);
 			for (DestinationSeq destinationSeq : listData) {
 				if (destinationSeq.getSeqDate().equals(tanggal)) {
 					arrDes.add(destinationSeq);
@@ -533,7 +533,7 @@ public class DestinationSeqService {
 			}
 
 			// Optimize
-			listData = desSeqDao.findByItrId(itineraryId);
+			listData = desSeqDao.findByItineraryId(itineraryId);
 			arrDes = new ArrayList<DestinationSeq>();
 			for (DestinationSeq destinationSeq : listData) {
 				if (destinationSeq.getSeqDate().equals(tanggal)) {
@@ -541,10 +541,10 @@ public class DestinationSeqService {
 				}
 			}
 			DestinationSeq.sortByDate(arrDes);
-			this.optimizeDay(arrDes);
+			this.getWayPoint(arrDes);
 
 			// Get Lagi
-			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
 				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
@@ -556,18 +556,18 @@ public class DestinationSeqService {
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 				DestinationSeq.sortByDate(list);
-				return this.splitData(list);
+				return this.mappingData(list);
 			}
 		}
 		return ResponseEntity.badRequest().body("Check Param");
 	}
 
-	public Object editdate(JsonNode jsonNode) {
+	public Object editDate(JsonNode jsonNode) {
 		String itineraryId = jsonNode.get("itineraryId").asText();
 		LocalDate seqDate = DataHelper.toDate(jsonNode.get("seqDate").asText().replaceAll("-", ""));
 		Optional<Itinerary> itrOpt = itrDao.findById(itineraryId);
 		if (itrOpt.isPresent()) {
-			List<DestinationSeq> lisDes = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> lisDes = desSeqDao.findByItineraryId(itineraryId);
 			DestinationSeq.sortByDate(lisDes);
 			Itinerary itr = itrOpt.get();
 			long diff = ChronoUnit.DAYS.between(seqDate, lisDes.get(0).getSeqDate());
@@ -595,7 +595,7 @@ public class DestinationSeqService {
 			itrDao.save(itr);
 
 			// Get Lagi
-			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
 				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
@@ -607,7 +607,7 @@ public class DestinationSeqService {
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 				DestinationSeq.sortByDate(list);
-				return this.splitData(list);
+				return this.mappingData(list);
 			}
 		}
 
@@ -621,7 +621,7 @@ public class DestinationSeqService {
 
 		ArrayList<DestinationSeq> arrDes = new ArrayList<DestinationSeq>();
 		HashMap<String, DestinationSeq> mapDes = new HashMap<String, DestinationSeq>();
-		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> listData = desSeqDao.findByItineraryId(itineraryId);
 		for (DestinationSeq destinationSeq : listData) {
 			if (destinationSeq.getSeqDate().equals(seqDate)) {
 				arrDes.add(destinationSeq);
@@ -648,10 +648,10 @@ public class DestinationSeqService {
 			}
 
 			DestinationSeq.sortByDate(arrDes);
-			this.optimizeDay(arrDes);
+			this.getWayPoint(arrDes);
 
 			// Get Lagi
-			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
 				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
@@ -663,17 +663,17 @@ public class DestinationSeqService {
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 				DestinationSeq.sortByDate(list);
-				return this.splitData(list);
+				return this.mappingData(list);
 			}
 		}
 
 		return ResponseEntity.badRequest().body("Check Param");
 	}
 
-	public Object adddate(JsonNode jsonNode) {
+	public Object addDate(JsonNode jsonNode) {
 		try {
 			String itineraryId = jsonNode.get("itineraryId").asText();
-			List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listData = desSeqDao.findByItineraryId(itineraryId);
 			DestinationSeq.sortByDate(listData);
 			LocalDate lastDate = listData.get(listData.size() - 1).getSeqDate();
 			lastDate = lastDate.plusDays(1);
@@ -690,7 +690,7 @@ public class DestinationSeqService {
 			desSeqDao.save(newData);
 
 			// Get Lagi
-			List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(itineraryId);
 			for (DestinationSeq destinationSeq : listDestSeq) {
 				Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 				if (desOpt.isPresent()) {
@@ -702,7 +702,7 @@ public class DestinationSeqService {
 			if (listDestSeq.size() > 0) {
 				ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 				DestinationSeq.sortByDate(list);
-				return this.splitData(list);
+				return this.mappingData(list);
 			}
 		} catch (Exception e) {
 			return ResponseEntity.internalServerError().body("Internal Server Error");
@@ -714,7 +714,7 @@ public class DestinationSeqService {
 		String itineraryId = jsonNode.get("itineraryId").asText();
 		LocalDate seqDate = DataHelper.toDate(jsonNode.get("seqDate").asText().replaceAll("-", ""));
 		String budget = jsonNode.get("budget").asText();
-		List<DestinationSeq> lisDes = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> lisDes = desSeqDao.findByItineraryId(itineraryId);
 		DestinationSeq.sortByDate(lisDes);
 
 		for (DestinationSeq destinationSeq : lisDes) {
@@ -725,7 +725,7 @@ public class DestinationSeqService {
 		}
 
 		// Get Lagi
-		List<DestinationSeq> listDestSeq = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> listDestSeq = desSeqDao.findByItineraryId(itineraryId);
 		for (DestinationSeq destinationSeq : listDestSeq) {
 			Optional<Destination> desOpt = desDao.findById(destinationSeq.getDestinationId());
 			if (desOpt.isPresent()) {
@@ -737,7 +737,7 @@ public class DestinationSeqService {
 		if (listDestSeq.size() > 0) {
 			ArrayList<DestinationSeq> list = new ArrayList<DestinationSeq>(listDestSeq);
 			DestinationSeq.sortByDate(list);
-			return this.splitData(list);
+			return this.mappingData(list);
 		}
 		return ResponseEntity.badRequest().body("Check Param");
 	}

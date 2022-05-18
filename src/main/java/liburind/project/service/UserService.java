@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import liburind.project.dao.TableCountRepository;
 import liburind.project.dao.UserRepository;
 import liburind.project.helper.DataHelper;
@@ -78,15 +80,15 @@ public class UserService {
 		return ResponseEntity.badRequest().body("Email has Been Used");
 	}
 
-	public Object login(String userEmail, String userPassword) throws NoSuchAlgorithmException {
+	public ResponseEntity<?> login(String userEmail, String userPassword) throws NoSuchAlgorithmException {
 		Optional<User> userOpt = userDao.findByEmail(userEmail);
 
 		return this.validateData(userOpt, userEmail, userPassword);
 	}
 
-	private Object validateData(Optional<User> userOpt, String userEmail, String userPassword) throws NoSuchAlgorithmException {
+	private ResponseEntity<?> validateData(Optional<User> userOpt, String userEmail, String userPassword) throws NoSuchAlgorithmException {
 		if (userOpt.isPresent()) {
-			if (!userOpt.get().getFlagActive()) {
+			if (userOpt.get().getFlagActive() == false) {
 				return ResponseEntity.badRequest().body("Not Actived");
 			}
 			if (!this.hashPassword(userPassword).equals(userOpt.get().getUserPassword())) {
@@ -96,7 +98,43 @@ public class UserService {
 			return ResponseEntity.badRequest().body("User Not Found");
 		}
 
-		return userOpt.get();
+		return ResponseEntity.ok(userOpt.get());
+	}
+
+	public Object getUserDetail(JsonNode jsonNode) {
+		Optional<User> userOpt = userDao.findById(jsonNode.get("userId").asText());
+
+		if (userOpt.isPresent()) {
+			return userOpt.get();
+		} else {
+			return ResponseEntity.status(404).body("Not Found");
+		}
+	}
+
+	public Object editProfile(String userId, String name, String password, String newPassword) throws NoSuchAlgorithmException {
+		Optional<User> userOpt = userDao.findById(userId);
+
+		if (userOpt.isPresent()) {
+			User user = userOpt.get();
+			user.setUserName(name);
+			if(!"".equals(password) && !"".equals(newPassword)) {
+				if(!user.getUserPassword().equals(this.hashPassword(password))) {
+					return ResponseEntity.badRequest().body("Wrong Password");
+				}
+				
+				String response = DataHelper.validatePassword(newPassword);
+				if(!"OK".equals(response)) {
+					return ResponseEntity.badRequest().body(response);
+				}
+				
+				user.setUserPassword(this.hashPassword(newPassword));
+			}
+			userDao.save(user);
+
+			return ResponseEntity.ok(user);
+		} else {
+			return ResponseEntity.status(404).body("Not Found");
+		}
 	}
 
 }

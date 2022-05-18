@@ -20,7 +20,6 @@ public class Itinerary {
 	@Id
 	private String itineraryId;
 	private String itineraryName;
-	private int itineraryRiviewCount;
 	private boolean publicFlag;
 	private String itineraryUserId;
 	private LocalDate startDate;

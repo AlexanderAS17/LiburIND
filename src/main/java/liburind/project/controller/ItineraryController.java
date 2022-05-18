@@ -135,7 +135,7 @@ public class ItineraryController {
 		String userId = jsonNode.get("userId").asText();
 		
 		try {
-			return ResponseEntity.ok().body(itineraryServ.getUserItenerary(userId));
+			return ResponseEntity.ok(itineraryServ.getUserItenerary(userId));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ArrayList<Itinerary>());
 		}
@@ -165,12 +165,12 @@ public class ItineraryController {
 	}
 	
 	@RequestMapping(value = { "/copy" }, method = RequestMethod.POST)
-	public ResponseEntity<?> copy(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> copyData(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 		
 		try {
-			return ResponseEntity.ok(itineraryServ.copy(jsonNode));
+			return ResponseEntity.ok(itineraryServ.copyData(jsonNode));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
 		}

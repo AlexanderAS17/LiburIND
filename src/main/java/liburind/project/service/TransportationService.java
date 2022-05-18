@@ -122,7 +122,7 @@ public class TransportationService {
 					trans.setUserId(userId);
 
 					Optional<TransportationCategory> trCtgOpt = transCatgDao
-							.findById(arrData.get(0).getTransCategoryId());
+							.findById(list.get(i).getTransCategoryId());
 					if (trCtgOpt.isPresent()) {
 						trans.setCategoryName(trCtgOpt.get().getTransCategoryName());
 					} else {
@@ -154,7 +154,7 @@ public class TransportationService {
 				response.setNamaUser("");
 			}
 
-			List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+			List<DestinationSeq> listData = desSeqDao.findByItineraryId(itineraryId);
 			DestinationSeq.sortByDate(listData);
 			response.setPickUpPlace("");
 			for (DestinationSeq destinationSeq : listData) {
@@ -176,6 +176,7 @@ public class TransportationService {
 
 			return response;
 		} catch (Exception e) {
+			e.printStackTrace();
 			return ResponseEntity.badRequest().body("Check Param");
 		}
 	}
@@ -219,7 +220,7 @@ public class TransportationService {
 		}
 
 		String tempat = "";
-		List<DestinationSeq> arrDest = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> arrDest = desSeqDao.findByItineraryId(itineraryId);
 		DestinationSeq.sortByDate(arrDest);
 		for (DestinationSeq destinationSeq : arrDest) {
 			if (arrTrans.get(0).getStartDate().equals(destinationSeq.getSeqDate())) {
@@ -293,7 +294,7 @@ public class TransportationService {
 		return null;
 	}
 
-	public Object cekpesanan(JsonNode jsonNode) {
+	public Object cekPesanan(JsonNode jsonNode) {
 		String itineraryId = jsonNode.get("itineraryId").asText();
 		List<Transportation> listTrans = transDao.findByItinerary(itineraryId);
 
@@ -327,7 +328,7 @@ public class TransportationService {
 			response.setNamaUser("");
 		}
 
-		List<DestinationSeq> listData = desSeqDao.findByItrId(itineraryId);
+		List<DestinationSeq> listData = desSeqDao.findByItineraryId(itineraryId);
 		DestinationSeq.sortByDate(listData);
 		response.setPickUpPlace("");
 		for (DestinationSeq destinationSeq : listData) {

@@ -30,12 +30,12 @@ public class DestinationController {
 	@RequestMapping(value = {
 			"/get" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<?> get(@RequestBody String json) throws IOException {
+	public ResponseEntity<?> getData(@RequestBody String json) throws IOException {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
 
-			return ResponseEntity.ok().body(destinationServ.get(jsonNode));
+			return ResponseEntity.ok().body(destinationServ.getData(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());

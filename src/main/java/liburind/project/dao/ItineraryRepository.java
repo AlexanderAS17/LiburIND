@@ -13,7 +13,7 @@ public interface ItineraryRepository extends MongoRepository<Itinerary, String> 
 	List<Itinerary> findByUserId(String itineraryUserId);
 	
 	@Query("{publicFlag: ?0}")
-	List<Itinerary> findByFlag(Boolean publicFlag);
+	List<Itinerary> findByPublicFlag(Boolean publicFlag);
 	
 	@Query("{itineraryName: {$regex: '?0'}}")
 	List<Itinerary> findByName(String itineraryName);
