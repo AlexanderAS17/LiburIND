@@ -148,7 +148,7 @@ public class ItineraryService {
 		return itinerary;
 	}
 
-	public ArrayList<User> getUser(String itineraryId) {
+	private ArrayList<User> getUser(String itineraryId) {
 		List<ItineraryUser> userList = itineraryUserDao.findAll();
 		ArrayList<User> arrUser = new ArrayList<User>();
 		boolean flagItr = false;
@@ -345,11 +345,7 @@ public class ItineraryService {
 		}
 	}
 
-	public Object search(String itineraryName) {
-		return itineraryDao.findByName(itineraryName);
-	}
-
-	public Object active(String key) {
+	public Object join(String key) {
 		List<ItineraryUser> userList = itineraryUserDao.findAll();
 		for (ItineraryUser itineraryUser : userList) {
 			if (key.substring(24, 27).equals(itineraryUser.getIteneraryUserKey().getItineraryId().substring(3, 6))

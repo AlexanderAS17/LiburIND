@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import liburind.project.dao.UserRepository;
 import liburind.project.model.User;
-import liburind.project.service.EmailService;
 import liburind.project.service.UserService;
 
 @CrossOrigin
@@ -32,9 +31,6 @@ public class UserController {
 
 	@Autowired
 	UserService userServ;
-
-	@Autowired
-	EmailService emailServ;
 
 	@RequestMapping(value = { "/get" }, method = RequestMethod.POST)
 	public ResponseEntity<?> getUserDetail(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
@@ -117,32 +113,11 @@ public class UserController {
 	// Active Email
 	@RequestMapping(value = { "/active" }, method = RequestMethod.GET)
 	public ResponseEntity<?> active(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
-
 		try {
-			return ResponseEntity.ok().body(emailServ.active(key));
+			return ResponseEntity.ok().body(userServ.active(key));
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Check Param");
 		}
 	}
-
-//	@PostMapping(value = "/tryphoto")
-//	public ResponseEntity<?> signupUser(@RequestParam("photo") MultipartFile photo) throws IOException {
-////		Path uploadPath = Paths.get("D:\\Project\\Heroku\\Foto\\");
-////
-////		if (!Files.exists(uploadPath)) {
-////			Files.createDirectories(uploadPath);
-////		}
-////
-////		try (InputStream inputStream = photo.getInputStream()) {
-////			Path filePath = uploadPath.resolve(photo.getName());
-////			Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-//		try {
-//			InputStream inputStream = photo.getInputStream();
-//		} catch (IOException ioe) {
-//			return ResponseEntity.badRequest().body("Error");
-//		}
-//		return ResponseEntity.ok().body("OK");
-//
-//	}
 
 }

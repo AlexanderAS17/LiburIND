@@ -32,21 +32,6 @@ public class TransportationController {
 	TransportationService transServ;
 
 	@RequestMapping(value = {
-			"/get" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> get(@RequestBody String json) throws IOException {
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			return ResponseEntity.ok().body(transServ.get(jsonNode));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Transportation>());
-		}
-	}
-
-	@RequestMapping(value = {
 			"/book" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> book(@RequestBody String json) throws IOException {

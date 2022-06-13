@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import liburind.project.model.Destination;
 import liburind.project.model.Itinerary;
 import liburind.project.model.User;
 import liburind.project.service.ItineraryService;
@@ -78,21 +77,6 @@ public class ItineraryController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Itinerary());
-		}
-	}
-
-	@RequestMapping(value = { "/user" }, method = RequestMethod.POST)
-	public ResponseEntity<?> getUser(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode jsonNode = objectMapper.readTree(json);
-
-		String itineraryId = jsonNode.get("itineraryId").asText();
-
-		ArrayList<User> arrUser = itineraryServ.getUser(itineraryId);
-		if (arrUser != null) {
-			return ResponseEntity.ok(arrUser);
-		} else {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
 		}
 	}
 
@@ -192,27 +176,10 @@ public class ItineraryController {
 		}
 	}
 
-	@RequestMapping(value = {
-			"/search" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> search(@RequestBody String json) throws IOException {
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			String itineraryName = jsonNode.get("destinationName").asText();
-
-			return ResponseEntity.ok().body(itineraryServ.search(itineraryName));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
-		}
-	}
-
 	@RequestMapping(value = { "/join" }, method = RequestMethod.GET)
 	public ResponseEntity<?> join(@RequestParam String key) throws JsonMappingException, JsonProcessingException {
 		try {
-			return ResponseEntity.ok().body(itineraryServ.active(key));
+			return ResponseEntity.ok().body(itineraryServ.join(key));
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Check Param");
 		}

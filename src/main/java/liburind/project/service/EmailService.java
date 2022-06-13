@@ -119,7 +119,7 @@ public class EmailService {
 				user.setFlagActive(true);
 				usrDao.save(user);
 				// Return PHP (?)
-				return "OKEEEE";
+				return "User Active";
 			}
 		}
 		return ResponseEntity.badRequest().body("Check Param");

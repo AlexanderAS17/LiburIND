@@ -66,14 +66,6 @@ public class TransportationService {
 	@Autowired
 	DestinationRepository desDao;
 
-	public Object get(JsonNode jsonNode) {
-		if (jsonNode.has("category")) {
-			return transDao.findByCategory(jsonNode.get("category").asText());
-		} else {
-			return transDao.findAllAvailable();
-		}
-	}
-
 	public Object list(JsonNode jsonNode) {
 		List<TransportationCategory> listCtg = transCatgDao.findAll();
 		List<Transportation> listTrans = transDao.findAllAvailable();

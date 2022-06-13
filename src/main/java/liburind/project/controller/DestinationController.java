@@ -1,7 +1,6 @@
 package liburind.project.controller;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,40 +38,6 @@ public class DestinationController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Destination());
-		}
-	}
-
-	@RequestMapping(value = {
-			"/category" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> getByCategory(@RequestBody String json) throws IOException {
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			String categoryId = jsonNode.get("categoryId").asText();
-
-			return ResponseEntity.ok().body(destinationServ.getCategory(categoryId));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
-		}
-	}
-
-	@RequestMapping(value = {
-			"/search" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
-	@ResponseBody
-	public ResponseEntity<?> search(@RequestBody String json) throws IOException {
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			JsonNode jsonNode = objectMapper.readTree(json);
-
-			String destinationName = jsonNode.get("destinationName").asText();
-
-			return ResponseEntity.ok().body(destinationServ.search(destinationName));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
 		}
 	}
 

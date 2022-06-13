@@ -383,7 +383,7 @@ public class DestinationSeqService {
 	}
 
 	@Transactional
-	public Object optimize(JsonNode jsonNode) throws JsonMappingException, JsonProcessingException {
+	public Object optimizeRoute(JsonNode jsonNode) throws JsonMappingException, JsonProcessingException {
 		String itineraryId = jsonNode.get("itineraryId").asText();
 		LocalDate date = DataHelper.toDate(jsonNode.get("date").asText().replaceAll("-", ""));
 		String startDest = jsonNode.get("start").asText();
@@ -741,109 +741,5 @@ public class DestinationSeqService {
 		}
 		return ResponseEntity.badRequest().body("Check Param");
 	}
-
-//	public Object updatesemua(JsonNode jsonNode) {
-//		List<Itinerary> listItr = itrDao.findAll();
-//		for (Itinerary itinerary : listItr) {
-//			List<DestinationSeq> listDes = desSeqDao.findByItrId(itinerary.getItineraryId());
-//			DestinationSeq.sortByDate(listDes);
-//			ArrayList<ArrayList<DestinationSeq>> splited = new ArrayList<ArrayList<DestinationSeq>>();
-//			ArrayList<DestinationSeq> arrData = new ArrayList<DestinationSeq>();
-//
-//			DestinationSeq prevData = new DestinationSeq();
-//			for (DestinationSeq destinationSeq : listDes) {
-//				if (arrData.size() > 0 && !prevData.getSeqDate().isEqual(destinationSeq.getSeqDate())) {
-//					splited.add(arrData);
-//					arrData = new ArrayList<DestinationSeq>();
-//				}
-//				arrData.add(destinationSeq);
-//				prevData = destinationSeq;
-//			}
-//			splited.add(arrData);
-//
-//			for (ArrayList<DestinationSeq> perDay : splited) {
-//				if (perDay.size() > 1) {
-//					String googleApi = "https://maps.googleapis.com/maps/api/directions/json?origin=";
-//					Optional<Destinations> desOptionalStart = desDao.findById(perDay.get(0).getDestinationId());
-//					Optional<Destinations> desOptionalEnd = desDao
-//							.findById(perDay.get(perDay.size() - 1).getDestinationId());
-//					String start = "place_id:" + desOptionalStart.get().getDestinationPlaceId();
-//					String end = "&destination=place_id:" + desOptionalEnd.get().getDestinationPlaceId();
-//					String optimize = "&waypoints=optimize:false";
-//					String destinasi = "";
-//
-//					for (DestinationSeq data : perDay) {
-//						Optional<Destinations> desOptional = desDao.findById(data.getDestinationId());
-//						if (desOptional.isPresent()) {
-//							if (!desOptionalStart.get().getDestinationPlaceId().equals(desOptional.get().getDestinationPlaceId())
-//									&& !desOptionalEnd.get().getDestinationPlaceId().equals(desOptional.get().getDestinationPlaceId())) {
-//								destinasi += "|place_id:" + desOptional.get().getDestinationPlaceId();
-//							}
-//						}
-//					}
-//
-//					String key = "&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
-//					String finalUrl = googleApi + start + end + optimize + destinasi + key;
-////					String finalUrl = "https://maps.googleapis.com/maps/api/directions/json?origin=place_id:ChIJP7Mmxcc1t2oRQMaOYlQ2AwQ&destination=McLaren+Vale,SA"
-////							+ "&waypoints=optimize:true|Barossa+Valley,SA|place_id:ChIJPTJwAtwIy2oRcO2OYlQ2AwQ&key=AIzaSyDy_VTeY85gJui-YspiEBMQh1QkU4PBhG4";
-//					System.out.println(finalUrl);
-//					ResponseEntity<String> respEntityRes = null;
-//					HttpHeaders headers = new HttpHeaders();
-//					HttpEntity<String> entity = new HttpEntity<String>(headers);
-//					RestTemplate restTemplate = new RestTemplate();
-//
-//					try {
-//						respEntityRes = restTemplate.exchange(finalUrl, HttpMethod.GET, entity, String.class);
-//
-//						ObjectMapper objectMapper = new ObjectMapper();
-//						JsonNode nodeResp = objectMapper.readTree(respEntityRes.getBody());
-//
-//						ArrayList<String> desSeqArr = new ArrayList<String>();
-//						if (nodeResp.get("geocoded_waypoints").isArray()) {
-//							for (JsonNode objNode : nodeResp.get("geocoded_waypoints")) {
-//								desSeqArr.add(objNode.get("place_id").asText());
-//							}
-//						}
-//
-//						ArrayList<String> arrKeterangan = new ArrayList<String>();
-//						if (nodeResp.get("routes").isArray()) {
-//							for (JsonNode objNode : nodeResp.get("routes")) {
-//								if (objNode.get("legs").isArray()) {
-//									for (JsonNode objNode2 : objNode.get("legs")) {
-//										arrKeterangan.add(objNode2.get("distance").get("text").asText());
-//										arrKeterangan.add(objNode2.get("duration").get("text").asText());
-//									}
-//								}
-//							}
-//						}
-//
-//						ArrayList<DestinationSeq> arrDes = perDay;
-//						for (int i = 0; i < arrDes.size(); i++) {
-//							Optional<Destinations> desOpt = desDao.findByPlaceId(desSeqArr.get(i));
-//							if (desOpt.isPresent()) {
-//								DestinationSeq desSeq = arrDes.get(i);
-//								desSeq.setDestinationId(desOpt.get().getDestinationId());
-//								try {
-//									desSeq.setDistance(arrKeterangan.get(i * 2));
-//									desSeq.setDuration(arrKeterangan.get(i * 2 + 1));
-//								} catch (Exception e) {
-//									desSeq.setDistance("");
-//									desSeq.setDuration("");
-//								}
-//								arrDes.set(i, desSeq);
-//								desSeqDao.save(arrDes.get(i));
-//							}
-//						}
-//
-//					} catch (HttpStatusCodeException e) {
-//						System.out.println(e.getCause());
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					}
-//				}
-//			}
-//		}
-//		return "Oke";
-//	}
 
 }
