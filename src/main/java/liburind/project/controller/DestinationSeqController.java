@@ -74,6 +74,24 @@ public class DestinationSeqController {
 	}
 
 	@RequestMapping(value = {
+			"/deleteone" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> deleteone(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			String seqId = jsonNode.get("seqId").asText();
+
+			destSeqServ.deleteone(seqId);
+			return ResponseEntity.ok().body("Data Deleted");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+		}
+	}
+
+	@RequestMapping(value = {
 			"/saveone" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> saveone(@RequestBody String json) throws IOException {
@@ -91,12 +109,12 @@ public class DestinationSeqController {
 	@RequestMapping(value = {
 			"/optimize" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public ResponseEntity<?> optimizeRoute(@RequestBody String json) throws IOException {
+	public ResponseEntity<?> optimize(@RequestBody String json) throws IOException {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
 
-			return ResponseEntity.ok().body(destSeqServ.optimizeRoute(jsonNode));
+			return ResponseEntity.ok().body(destSeqServ.optimize(jsonNode));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
@@ -134,6 +152,21 @@ public class DestinationSeqController {
 	}
 
 	@RequestMapping(value = {
+			"/change" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> change(@RequestBody String json) throws IOException {
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode jsonNode = objectMapper.readTree(json);
+
+			return ResponseEntity.ok().body(destSeqServ.change(jsonNode));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+		}
+	}
+
+	@RequestMapping(value = {
 			"/adddate" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> addDate(@RequestBody String json) throws IOException {
@@ -163,4 +196,18 @@ public class DestinationSeqController {
 		}
 	}
 
+//	@RequestMapping(value = {
+//			"/updatesemua" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+//	@ResponseBody
+//	public ResponseEntity<?> updatesemua(@RequestBody String json) throws IOException {
+//		try {
+//			ObjectMapper objectMapper = new ObjectMapper();
+//			JsonNode jsonNode = objectMapper.readTree(json);
+//
+//			return ResponseEntity.ok().body(destSeqServ.updatesemua(jsonNode));
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+//		}
+//	}
 }

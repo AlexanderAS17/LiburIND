@@ -31,7 +31,7 @@ public class UserService {
 	@Autowired
 	EmailService emailServ;
 
-	private String hashPassword(String str) throws NoSuchAlgorithmException {
+	public String hashPassword(String str) throws NoSuchAlgorithmException {
 		MessageDigest md = MessageDigest.getInstance("SHA-1");
 		byte[] messageDigest = md.digest(str.getBytes());
 		BigInteger no = new BigInteger(1, messageDigest);
@@ -42,20 +42,6 @@ public class UserService {
 		}
 
 		return hashtext;
-	}
-	
-	public Object active(String key) {
-		Optional<User> usrOpt = userDao.findById("USR" + key.substring(30, 33));
-		if (usrOpt.isPresent()) {
-			User user = usrOpt.get();
-			if (user.getKey().equals(key)) {
-				user.setFlagActive(true);
-				userDao.save(user);
-				// Return PHP (?)
-				return "User Actived";
-			}
-		}
-		return ResponseEntity.badRequest().body("Check Param");
 	}
 
 	public Object register(String name, String email, String password) throws NoSuchAlgorithmException {

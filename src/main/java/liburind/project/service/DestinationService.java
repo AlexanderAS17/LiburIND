@@ -71,6 +71,18 @@ public class DestinationService {
 		}
 	}
 
+	public ArrayList<Destination> getCategory(String categoryId) {
+		ArrayList<Destination> arrDest = new ArrayList<Destination>();
+		List<DestinationCategory> ctgList = destCtgDao.findByCategory(categoryId);
+		for (DestinationCategory data : ctgList) {
+			Optional<Destination> destOpt = destDao.findById(data.getDestinationId());
+			if (destOpt.isPresent()) {
+				arrDest.add(destOpt.get());
+			}
+		}
+		return arrDest;
+	}
+
 	public Object delete(String destinationId) {
 		Optional<Destination> destOpt = destDao.findById(destinationId);
 		if (destOpt.isPresent()) {
@@ -109,13 +121,15 @@ public class DestinationService {
 			}
 		}
 		
+		System.out.println(destination.getDestinationType());
+		
 		destination = this.updateCategory(destination);
 		destDao.save(destination);
 
 		return destination;
 	}
 
-	private Destination updateCategory(Destination destination) {
+	public Destination updateCategory(Destination destination) {
 		Optional<Destination> destOpt = destDao.findById(destination.getDestinationId());
 		if (destOpt.isPresent()) {
 			Destination destinations = this.getCategory(destination);
@@ -215,6 +229,16 @@ public class DestinationService {
 			}
 		}
 		return destination;
+	}
+
+	public Object search(String destinationName) {
+		ArrayList<Destination> arrDest = new ArrayList<Destination>();
+		List<Destination> listDest = destDao.findByName(destinationName);
+		for (Destination destination : listDest) {
+			destination = this.getCategory(destination);
+			arrDest.add(destination);
+		}
+		return arrDest;
 	}
 
 }
