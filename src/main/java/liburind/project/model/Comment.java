@@ -19,6 +19,7 @@ public class Comment {
 	@JsonIgnore
 	private String commentId;
 	private String userId;
+	private String userName;
 	private String itineraryId;
 	private LocalDateTime commentTime;
 	private String message;

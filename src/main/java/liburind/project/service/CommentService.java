@@ -11,8 +11,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import liburind.project.dao.CommentRepository;
 import liburind.project.dao.TableCountRepository;
+import liburind.project.dao.UserRepository;
 import liburind.project.model.Comment;
 import liburind.project.model.TableCount;
+import liburind.project.model.User;
 
 @Service
 public class CommentService {
@@ -22,6 +24,9 @@ public class CommentService {
 
 	@Autowired
 	TableCountRepository tblDao;
+	
+	@Autowired
+	UserRepository userDao;
 
 	public Object getData(JsonNode jsonNode) {
 		if (jsonNode.has("itineraryId")) {
@@ -49,6 +54,13 @@ public class CommentService {
 	public Object save(JsonNode jsonNode) {
 		Comment comment = Comment.mapJson(jsonNode);
 		String id = "";
+		
+		Optional<User> userOpt = userDao.findById(comment.getUserId());
+		if(userOpt.isPresent()) {
+			comment.setUserName(userOpt.get().getUserName());
+		} else {
+			comment.setUserName("");
+		}
 
 		Optional<TableCount> tblCount = tblDao.findById("Comment");
 		if (tblCount.isPresent()) {
