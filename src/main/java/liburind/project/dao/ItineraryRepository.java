@@ -15,7 +15,7 @@ public interface ItineraryRepository extends MongoRepository<Itinerary, String> 
 	@Query("{publicFlag: ?0}")
 	List<Itinerary> findByPublicFlag(Boolean publicFlag);
 	
-	@Query("{itineraryName: {$regex: '?0'}}")
-	List<Itinerary> findByName(String itineraryName);
+	@Query("{itineraryCategory: {$regex: '?0', '$options' : 'i'}, publicFlag: true}")
+	List<Itinerary> findByCategory(String itineraryName);
 
 }

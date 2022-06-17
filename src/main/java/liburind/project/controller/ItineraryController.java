@@ -128,12 +128,13 @@ public class ItineraryController {
 	}
 
 	@RequestMapping(value = { "/list" }, method = RequestMethod.POST)
-	public ResponseEntity<?> getUserItenerary(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> getUserItenerary(@RequestBody String json)
+			throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 
 		String userId = jsonNode.get("userId").asText();
-		
+
 		try {
 			return ResponseEntity.ok(itineraryServ.getUserItenerary(userId));
 		} catch (Exception e) {
@@ -153,22 +154,23 @@ public class ItineraryController {
 	}
 
 	@RequestMapping(value = { "/publish" }, method = RequestMethod.POST)
-	public ResponseEntity<?> publishItenerary(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
+	public ResponseEntity<?> publishItenerary(@RequestBody String json)
+			throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
-		
+
 		try {
 			return ResponseEntity.ok(itineraryServ.publishItenerary(jsonNode));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Not Found");
 		}
 	}
-	
+
 	@RequestMapping(value = { "/copy" }, method = RequestMethod.POST)
 	public ResponseEntity<?> copyData(@RequestBody String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
-		
+
 		try {
 			return ResponseEntity.ok(itineraryServ.copyData(jsonNode));
 		} catch (Exception e) {
@@ -200,9 +202,9 @@ public class ItineraryController {
 			ObjectMapper objectMapper = new ObjectMapper();
 			JsonNode jsonNode = objectMapper.readTree(json);
 
-			String itineraryName = jsonNode.get("destinationName").asText();
+			String categoryItr = jsonNode.get("categoryItr").asText();
 
-			return ResponseEntity.ok().body(itineraryServ.search(itineraryName));
+			return ResponseEntity.ok().body(itineraryServ.search(categoryItr));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
@@ -215,6 +217,18 @@ public class ItineraryController {
 			return ResponseEntity.ok().body(itineraryServ.active(key));
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body("Check Param");
+		}
+	}
+
+	@RequestMapping(value = {
+			"/ctgg" }, method = RequestMethod.POST, consumes = "application/json", produces = "application/json")
+	@ResponseBody
+	public ResponseEntity<?> ctgg(@RequestBody String json) throws IOException {
+		try {
+			return ResponseEntity.ok().body(itineraryServ.ctgg());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ArrayList<Destination>());
 		}
 	}
 

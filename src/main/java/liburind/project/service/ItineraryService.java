@@ -346,7 +346,7 @@ public class ItineraryService {
 	}
 
 	public Object search(String itineraryName) {
-		return itineraryDao.findByName(itineraryName);
+		return itineraryDao.findByCategory(itineraryName);
 	}
 
 	public Object active(String key) {
@@ -385,6 +385,9 @@ public class ItineraryService {
 			itr.setItineraryId(id);
 			itr.setPublicFlag(true);
 			itr.setPublisher("");
+			String categoryItr = jsonNode.has("category") ? jsonNode.get("category").asText() : "";
+			itr.setItineraryCategory(categoryItr);
+			
 			Optional<User> usrOpt = userDao.findById(itr.getItineraryUserId());
 			if (usrOpt.isPresent()) {
 				itr.setPublisher(usrOpt.get().getUserName());
@@ -452,5 +455,15 @@ public class ItineraryService {
 			return "Data Copied";
 		}
 		return ResponseEntity.badRequest().body("Check Param");
+	}
+
+	public Object ctgg() {
+		Optional<Itinerary> itrOpt = itineraryDao.findById("ITR026");
+		if(itrOpt.isPresent()) {
+			Itinerary itr = itrOpt.get();
+			itr.setItineraryCategory("ITRCTG001,ITRCTG002,ITRCTG004");
+			itineraryDao.save(itr);
+		}
+		return "Okeeeeh";
 	}
 }
